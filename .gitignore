@@ -57,3 +57,5 @@ typings/
 # dotenv environment variables file
 .env
 
+# Output of 'npm run build'
+build

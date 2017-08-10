@@ -9,7 +9,9 @@
   "scripts": {
     "lint": "eslint src",
     "test": "npm run lint && cross-env NODE_ENV=test nyc mocha src/**/*-test.js --compilers js:babel-register --require babel-polyfill",
-    "coverage": "nyc report --reporter=text-lcov | coveralls"
+    "coverage": "nyc report --reporter=text-lcov | coveralls",
+    "build": "webpack -p",
+    "start": "webpack && node build/main.js"
   },
   "nyc": {
     "sourceMap": false,
@@ -24,9 +26,11 @@
     "babel-cli": "^6.24.1",
     "babel-core": "^6.25.0",
     "babel-eslint": "^7.2.3",
+    "babel-loader": "^7.1.1",
     "babel-plugin-istanbul": "^4.1.4",
     "babel-plugin-transform-flow-strip-types": "^6.22.0",
     "babel-polyfill": "^6.23.0",
+    "babel-preset-env": "^1.6.0",
     "babel-preset-flow": "^6.23.0",
     "babel-preset-latest": "^6.24.1",
     "babel-register": "^6.24.1",
@@ -38,6 +42,7 @@
     "flow-bin": "^0.52.0",
     "mocha": "^3.5.0",
     "nyc": "^11.1.0",
-    "prettier": "^1.5.3"
+    "prettier": "^1.5.3",
+    "webpack": "^3.5.2"
   }
 }
