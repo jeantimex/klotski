@@ -7,8 +7,9 @@
   "author": "jeantimex <jean.timex@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "lint": "eslint src",
-    "test": "npm run lint && cross-env NODE_ENV=test nyc mocha src/**/*-test.js --compilers js:babel-register --require babel-polyfill",
+    "flow": "./node_modules/.bin/flow",
+    "lint": "npm run flow && eslint src",
+    "test": "npm run lint && cross-env NODE_ENV=test nyc mocha test/**/*-test.js --compilers js:babel-register --require babel-polyfill",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "build": "webpack -p",
     "start": "webpack && node build/main.js"
