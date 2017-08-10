@@ -2,10 +2,10 @@ var path = require('path');
 var webpack = require('webpack');
 
 module.exports = {
-  entry: './src/Klotski.js',
+  entry: './src/klotski/index.js',
   output: {
     path: path.resolve(__dirname, 'build'),
-    filename: 'main.js',
+    filename: 'index.js',
   },
   module: {
     loaders: [

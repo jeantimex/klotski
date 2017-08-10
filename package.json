@@ -7,20 +7,21 @@
   "author": "jeantimex <jean.timex@gmail.com>",
   "license": "MIT",
   "scripts": {
+    "flow-typed": "./node_modules/.bin/flow-typed install",
     "flow": "./node_modules/.bin/flow",
     "lint": "npm run flow && eslint src",
-    "test": "npm run lint && cross-env NODE_ENV=test nyc mocha test/**/*-test.js --compilers js:babel-register --require babel-polyfill",
+    "test": "npm run lint && cross-env NODE_ENV=test nyc --reporter=html --reporter=text mocha --compilers js:babel-register --require babel-polyfill",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "build": "webpack -p",
-    "start": "webpack && node build/main.js"
+    "start": "babel-node src/demo.js"
   },
   "nyc": {
     "sourceMap": false,
     "instrument": false,
-    "lines": 99,
-    "statements": 99,
-    "functions": 99,
-    "branches": 99
+    "lines": 90,
+    "statements": 90,
+    "functions": 90,
+    "branches": 90
   },
   "devDependencies": {
     "babel": "^6.23.0",
@@ -39,8 +40,10 @@
     "coveralls": "^2.13.1",
     "cross-env": "^5.0.2",
     "eslint": "^4.3.0",
+    "eslint-plugin-flowtype": "^2.35.0",
     "eslint-plugin-prettier": "^2.1.2",
     "flow-bin": "^0.52.0",
+    "flow-typed": "^2.1.5",
     "mocha": "^3.5.0",
     "nyc": "^11.1.0",
     "prettier": "^1.5.3",
