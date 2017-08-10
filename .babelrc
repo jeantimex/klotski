@@ -1,5 +1,6 @@
 {
-  "presets": ["latest"],
+  "presets": ["latest", "flow"],
+  "plugins": ["transform-flow-strip-types"],
   "env": {
     "test": {
       "plugins": ["istanbul"]
