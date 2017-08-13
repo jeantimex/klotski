@@ -13,7 +13,7 @@
     "test": "npm run lint && cross-env NODE_ENV=test nyc --reporter=html --reporter=text mocha --compilers js:babel-register --require babel-polyfill",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "build": "webpack -p",
-    "start": "babel-node src/demo.js"
+    "demo": "babel-node src/demo.js"
   },
   "nyc": {
     "sourceMap": false,
@@ -48,5 +48,8 @@
     "nyc": "^11.1.0",
     "prettier": "^1.5.3",
     "webpack": "^3.5.2"
+  },
+  "dependencies": {
+    "clone": "^2.1.1"
   }
 }
