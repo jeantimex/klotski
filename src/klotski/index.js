@@ -33,6 +33,8 @@ const CAO_ESCAPE_COL: number = 1; // col
 const BOARD_CELL_EMPTY: number = 0; // 0x00
 const BOARD_CELL_BORDER: number = 15; // 0x0F
 
+const DEBUG = false;
+
 const directions: Array<Direction> = [{ x: 0, y: 1 }, { x: 1, y: 0 }, { x: 0, y: -1 }, { x: -1, y: 0 }];
 const directionName: Array<string> = ['Down', 'Right', 'Up', 'Left'];
 
@@ -87,9 +89,138 @@ export default class Klotski {
     return hash;
   }
 
+  getZobristHash(gameState: GameState): number {
+    let hash: number = 0;
+    const heroes = gameState.heroes;
+
+    for (let i = 1; i <= HRD_GAME_ROW; i++) {
+      for (let j = 1; j <= HRD_GAME_COL; j++) {
+        const index = gameState.board[i][j] - 1;
+        const type = index >= 0 && index < heroes.length ? heroes[index].type : 0;
+        hash ^= zob_hash.key[i - 1][j - 1].value[type];
+      }
+    }
+
+    return hash;
+  }
+
+  getMirrorZobristHash(gameState: GameState): number {
+    let hash: number = 0;
+    const heroes = gameState.heroes;
+
+    for (let i = 1; i <= HRD_GAME_ROW; i++) {
+      for (let j = 1; j <= HRD_GAME_COL; j++) {
+        const index = gameState.board[i][j] - 1;
+        const type = index >= 0 && index < heroes.length ? heroes[index].type : 0;
+        hash ^= zob_hash.key[i - 1][HRD_GAME_COL - j].value[type];
+      }
+    }
+
+    return hash;
+  }
+
+  getZobristHashUpdate(gameState: GameState, heroIdx: number, dirIdx: number): number {
+    let hash = gameState.hash;
+
+    const hero: Warrior = gameState.heroes[heroIdx];
+    const dir: Direction = directions[dirIdx];
+
+    switch (hero.type) {
+      case HT_BLOCK:
+        // Clear the old position
+        hash ^= zob_hash.key[hero.row][hero.col].value[hero.type];
+        hash ^= zob_hash.key[hero.row][hero.col].value[0];
+        // Take the new position
+        hash ^= zob_hash.key[hero.row + dir.y][hero.col + dir.x].value[0];
+        hash ^= zob_hash.key[hero.row + dir.y][hero.col + dir.x].value[hero.type];
+        break;
+      case HT_VBAR:
+        // Clear the old position
+        hash ^= zob_hash.key[hero.row][hero.col].value[hero.type];
+        hash ^= zob_hash.key[hero.row + 1][hero.col].value[hero.type];
+        hash ^= zob_hash.key[hero.row][hero.col].value[0];
+        hash ^= zob_hash.key[hero.row + 1][hero.col].value[0];
+        // Take the new position
+        hash ^= zob_hash.key[hero.row + dir.y][hero.col + dir.x].value[0];
+        hash ^= zob_hash.key[hero.row + dir.y + 1][hero.col + dir.x].value[0];
+        hash ^= zob_hash.key[hero.row + dir.y][hero.col + dir.x].value[hero.type];
+        hash ^= zob_hash.key[hero.row + dir.y + 1][hero.col + dir.x].value[hero.type];
+        break;
+      case HT_HBAR:
+        // Clear the old position
+        hash ^= zob_hash.key[hero.row][hero.col].value[hero.type];
+        hash ^= zob_hash.key[hero.row][hero.col + 1].value[hero.type];
+        hash ^= zob_hash.key[hero.row][hero.col].value[0];
+        hash ^= zob_hash.key[hero.row][hero.col + 1].value[0];
+        // Take the new position
+        hash ^= zob_hash.key[hero.row + dir.y][hero.col + dir.x].value[0];
+        hash ^= zob_hash.key[hero.row + dir.y][hero.col + dir.x + 1].value[0];
+        hash ^= zob_hash.key[hero.row + dir.y][hero.col + dir.x].value[hero.type];
+        hash ^= zob_hash.key[hero.row + dir.y][hero.col + dir.x + 1].value[hero.type];
+        break;
+      case HT_BOX:
+        // Clear the old position
+        hash ^= zob_hash.key[hero.row][hero.col].value[hero.type];
+        hash ^= zob_hash.key[hero.row][hero.col + 1].value[hero.type];
+        hash ^= zob_hash.key[hero.row + 1][hero.col].value[hero.type];
+        hash ^= zob_hash.key[hero.row + 1][hero.col + 1].value[hero.type];
+        hash ^= zob_hash.key[hero.row][hero.col].value[0];
+        hash ^= zob_hash.key[hero.row][hero.col + 1].value[0];
+        hash ^= zob_hash.key[hero.row + 1][hero.col].value[0];
+        hash ^= zob_hash.key[hero.row + 1][hero.col + 1].value[0];
+        // Take the new position
+        hash ^= zob_hash.key[hero.row + dir.y][hero.col + dir.x].value[0];
+        hash ^= zob_hash.key[hero.row + dir.y][hero.col + dir.x + 1].value[0];
+        hash ^= zob_hash.key[hero.row + dir.y + 1][hero.col + dir.x].value[0];
+        hash ^= zob_hash.key[hero.row + dir.y + 1][hero.col + dir.x + 1].value[0];
+        hash ^= zob_hash.key[hero.row + dir.y][hero.col + dir.x].value[hero.type];
+        hash ^= zob_hash.key[hero.row + dir.y][hero.col + dir.x + 1].value[hero.type];
+        hash ^= zob_hash.key[hero.row + dir.y + 1][hero.col + dir.x].value[hero.type];
+        hash ^= zob_hash.key[hero.row + dir.y + 1][hero.col + dir.x + 1].value[hero.type];
+        break;
+    }
+
+    return hash;
+  }
+
+  initZobristHash() {
+    zob_hash = { key: [] };
+
+    for (let i = 0; i < HRD_GAME_ROW; i++) {
+      zob_hash.key[i] = [];
+
+      for (let j = 0; j < HRD_GAME_COL; j++) {
+        zob_hash.key[i][j] = { value: [] };
+        this.makeCellState(zob_hash.key[i][j]);
+      }
+    }
+  }
+
+  makeCellState(cr: CellState) {
+    for (let i = 0; i < MAX_WARRIOR_TYPE; i++) {
+      cr.value[i] = this.random32();
+    }
+    if (DEBUG) {
+      console.log(cr.value);
+    }
+  }
+
+  random32(): number {
+    let tmp = 0;
+
+    do {
+      tmp = Math.floor(Math.random() * Math.pow(2, 31));
+    } while (!tmp);
+
+    return tmp;
+  }
+
   isPositionAvailable(state: GameState, type: WarriorType, row: number, col: number): boolean {
-    console.log('is available');
-    console.log(type, row, col);
+    if (DEBUG) {
+      console.log('is available');
+      console.log(type, row, col);
+    }
+
     let isOK: boolean = false;
 
     switch (type) {
@@ -114,7 +245,9 @@ export default class Klotski {
         break;
     }
 
-    console.log(isOK);
+    if (DEBUG) {
+      console.log(isOK);
+    }
 
     return isOK;
   }
@@ -207,9 +340,12 @@ export default class Klotski {
   }
 
   addGameStateHero(state: GameState, heroIdx: number, hero: Warrior): boolean {
-    console.log('hey yo', heroIdx, hero.type, hero.row, hero.col);
-    console.log(state.board);
-    console.log('---------');
+    if (DEBUG) {
+      console.log('hey yo', heroIdx, hero.type, hero.row, hero.col);
+      console.log(state.board);
+      console.log('---------');
+    }
+
     if (this.isPositionAvailable(state, hero.type, hero.row, hero.col)) {
       this.takePosition(state, heroIdx, hero.type, hero.row, hero.col);
       state.heroes.push(hero);
@@ -294,8 +430,13 @@ export default class Klotski {
   }
 
   markGameState(game: Game, gameState: GameState) {
-    const hash: number = this.getHash(gameState);
-    game.zhash[`${hash}`] = true;
+    const l2rHash: number = this.getZobristHash(gameState);
+    game.zhash[`${l2rHash}`] = true;
+
+    if (NO_LR_MIRROR_ALLOW) {
+      const r2lHash: number = this.getMirrorZobristHash(gameState);
+      game.zhash[`${r2lHash}`] = true;
+    }
   }
 
   outputMoveRecords(game: Game, gameState: GameState) {
@@ -306,7 +447,6 @@ export default class Klotski {
       if (state.step > 0) {
         const curMove: MoveAction = state.move;
         const curDirection: string = this.directionStringFromIndex(curMove.dirIdx);
-
         console.log(`Step ${state.step} : ${game.heroNames[curMove.heroIdx]} move ${curDirection}`);
       }
 
@@ -316,16 +456,20 @@ export default class Klotski {
 
   isEscaped(game: Game, gameState: GameState): boolean {
     const hero: Warrior = gameState.heroes[game.caoIdx - 1];
-    console.log(`${hero.type}, ${hero.row}, ${hero.col}`);
+    if (DEBUG) {
+      console.log(`${hero.type}, ${hero.row}, ${hero.col}`);
+    }
     return hero.row === CAO_ESCAPE_ROW && hero.col === CAO_ESCAPE_COL;
   }
 
   printGameState(gameState: GameState) {
-    const hash = this.getHash(gameState);
+    const hash = this.getZobristHash(gameState);
 
-    console.log(`[${level}] Game state hash : ${hash}`);
-    console.log(gameState.board);
-    console.log('------------------');
+    if (DEBUG) {
+      console.log(`[${level}] Game state hash : ${hash}`);
+      console.log(gameState.board);
+      console.log('------------------');
+    }
 
     const heroes = gameState.heroes;
     let str = '';
@@ -333,8 +477,11 @@ export default class Klotski {
       const hero: Warrior = heroes[i];
       str += `${hero.type}, ${hero.row}, ${hero.col},  `;
     }
-    console.log(str);
-    console.log('------------------');
+
+    if (DEBUG) {
+      console.log(str);
+      console.log('------------------');
+    }
   }
 
   resolveGame(game: Game): boolean {
@@ -342,7 +489,9 @@ export default class Klotski {
       const gameState: ?GameState = game.states.shift();
 
       if (gameState) {
-        console.log('==============================');
+        if (DEBUG) {
+          console.log('==============================');
+        }
         this.printGameState(gameState);
 
         this.markGameState(game, gameState);
@@ -357,7 +506,9 @@ export default class Klotski {
         }
       } else {
         level++;
-        console.log('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++');
+        if (DEBUG) {
+          console.log('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++');
+        }
         if (game.states.length > 0) {
           game.states.push(null);
         }
@@ -417,13 +568,27 @@ export default class Klotski {
   }
 
   addNewStatePattern(game: Game, gameState: GameState): boolean {
-    const hash: number = this.getHash(gameState);
+    const l2rHash: number = this.getZobristHash(gameState);
+    let r2lHash: number = 0;
 
-    if (game.zhash[`${hash}`]) {
+    if (game.zhash[`${l2rHash}`]) {
       return false;
     }
 
-    game.zhash[`${hash}`] = true;
+    if (NO_LR_MIRROR_ALLOW) {
+      r2lHash = this.getMirrorZobristHash(gameState);
+
+      if (game.zhash[`${r2lHash}`]) {
+        return false;
+      }
+    }
+
+    game.zhash[`${l2rHash}`] = true;
+
+    if (NO_LR_MIRROR_ALLOW) {
+      game.zhash[`${r2lHash}`] = true;
+    }
+
     game.states.push(gameState);
 
     return true;
@@ -455,6 +620,8 @@ export default class Klotski {
       zhash: {},
       result: 0,
     };
+
+    this.initZobristHash();
 
     if (this.initHrdGame(game, start)) {
       console.log(`Find result for layout : ${game.gameName}`);
