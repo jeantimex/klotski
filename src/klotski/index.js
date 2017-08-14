@@ -12,9 +12,6 @@ import type {
   WarriorType,
   ZobristHash,
 } from './Types';
-import assert from 'assert';
-
-import fs from 'fs';
 
 const NO_LR_MIRROR_ALLOW: boolean = true;
 
@@ -54,7 +51,7 @@ export default class Klotski {
   }
 
   copyGameState(gameState: GameState): GameState {
-    return clone(gameState);
+    return JSON.parse(JSON.stringify(gameState));
   }
 
   directionStringFromIndex(dirIdx: number): string {
@@ -119,64 +116,69 @@ export default class Klotski {
     return hash;
   }
 
-  getZobristHashUpdate(gameState: GameState, heroIdx: number, dirIdx: number): number {
-    let hash = gameState.hash;
+  getZobristHashUpdate(gameState: GameState, heroIdx: number, dirIdx: number, isMirror: boolean = false): number {
+    let hash = isMirror ? gameState.hashMirror : gameState.hash;
+    dirIdx = isMirror && dirIdx % 2 === 1 ? (dirIdx + 2) % 4 : dirIdx;
 
     const hero: Warrior = gameState.heroes[heroIdx];
     const dir: Direction = directions[dirIdx];
+    const { x, y } = dir;
+    const { row, type } = hero;
+    const col = isMirror ? HRD_GAME_COL - 1 - hero.col : hero.col;
+    const dx = isMirror ? -1 : 1;
 
     switch (hero.type) {
       case HT_BLOCK:
         // Clear the old position
-        hash ^= zob_hash.key[hero.row][hero.col].value[hero.type];
-        hash ^= zob_hash.key[hero.row][hero.col].value[0];
+        hash ^= zob_hash.key[row][col].value[type];
+        hash ^= zob_hash.key[row][col].value[0];
         // Take the new position
-        hash ^= zob_hash.key[hero.row + dir.y][hero.col + dir.x].value[0];
-        hash ^= zob_hash.key[hero.row + dir.y][hero.col + dir.x].value[hero.type];
+        hash ^= zob_hash.key[row + y][col + x].value[0];
+        hash ^= zob_hash.key[row + y][col + x].value[type];
         break;
       case HT_VBAR:
         // Clear the old position
-        hash ^= zob_hash.key[hero.row][hero.col].value[hero.type];
-        hash ^= zob_hash.key[hero.row + 1][hero.col].value[hero.type];
-        hash ^= zob_hash.key[hero.row][hero.col].value[0];
-        hash ^= zob_hash.key[hero.row + 1][hero.col].value[0];
+        hash ^= zob_hash.key[row][col].value[type];
+        hash ^= zob_hash.key[row + 1][col].value[type];
+        hash ^= zob_hash.key[row][col].value[0];
+        hash ^= zob_hash.key[row + 1][col].value[0];
         // Take the new position
-        hash ^= zob_hash.key[hero.row + dir.y][hero.col + dir.x].value[0];
-        hash ^= zob_hash.key[hero.row + dir.y + 1][hero.col + dir.x].value[0];
-        hash ^= zob_hash.key[hero.row + dir.y][hero.col + dir.x].value[hero.type];
-        hash ^= zob_hash.key[hero.row + dir.y + 1][hero.col + dir.x].value[hero.type];
+        hash ^= zob_hash.key[row + y][col + x].value[0];
+        hash ^= zob_hash.key[row + y + 1][col + x].value[0];
+        hash ^= zob_hash.key[row + y][col + x].value[type];
+        hash ^= zob_hash.key[row + y + 1][col + x].value[type];
         break;
       case HT_HBAR:
         // Clear the old position
-        hash ^= zob_hash.key[hero.row][hero.col].value[hero.type];
-        hash ^= zob_hash.key[hero.row][hero.col + 1].value[hero.type];
-        hash ^= zob_hash.key[hero.row][hero.col].value[0];
-        hash ^= zob_hash.key[hero.row][hero.col + 1].value[0];
+        hash ^= zob_hash.key[row][col].value[type];
+        hash ^= zob_hash.key[row][col + dx].value[type];
+        hash ^= zob_hash.key[row][col].value[0];
+        hash ^= zob_hash.key[row][col + dx].value[0];
         // Take the new position
-        hash ^= zob_hash.key[hero.row + dir.y][hero.col + dir.x].value[0];
-        hash ^= zob_hash.key[hero.row + dir.y][hero.col + dir.x + 1].value[0];
-        hash ^= zob_hash.key[hero.row + dir.y][hero.col + dir.x].value[hero.type];
-        hash ^= zob_hash.key[hero.row + dir.y][hero.col + dir.x + 1].value[hero.type];
+        hash ^= zob_hash.key[row + y][col + x].value[0];
+        hash ^= zob_hash.key[row + y][col + x + dx].value[0];
+        hash ^= zob_hash.key[row + y][col + x].value[type];
+        hash ^= zob_hash.key[row + y][col + x + dx].value[type];
         break;
       case HT_BOX:
         // Clear the old position
-        hash ^= zob_hash.key[hero.row][hero.col].value[hero.type];
-        hash ^= zob_hash.key[hero.row][hero.col + 1].value[hero.type];
-        hash ^= zob_hash.key[hero.row + 1][hero.col].value[hero.type];
-        hash ^= zob_hash.key[hero.row + 1][hero.col + 1].value[hero.type];
-        hash ^= zob_hash.key[hero.row][hero.col].value[0];
-        hash ^= zob_hash.key[hero.row][hero.col + 1].value[0];
-        hash ^= zob_hash.key[hero.row + 1][hero.col].value[0];
-        hash ^= zob_hash.key[hero.row + 1][hero.col + 1].value[0];
+        hash ^= zob_hash.key[row][col].value[type];
+        hash ^= zob_hash.key[row][col + dx].value[type];
+        hash ^= zob_hash.key[row + 1][col].value[type];
+        hash ^= zob_hash.key[row + 1][col + dx].value[type];
+        hash ^= zob_hash.key[row][col].value[0];
+        hash ^= zob_hash.key[row][col + dx].value[0];
+        hash ^= zob_hash.key[row + 1][col].value[0];
+        hash ^= zob_hash.key[row + 1][col + dx].value[0];
         // Take the new position
-        hash ^= zob_hash.key[hero.row + dir.y][hero.col + dir.x].value[0];
-        hash ^= zob_hash.key[hero.row + dir.y][hero.col + dir.x + 1].value[0];
-        hash ^= zob_hash.key[hero.row + dir.y + 1][hero.col + dir.x].value[0];
-        hash ^= zob_hash.key[hero.row + dir.y + 1][hero.col + dir.x + 1].value[0];
-        hash ^= zob_hash.key[hero.row + dir.y][hero.col + dir.x].value[hero.type];
-        hash ^= zob_hash.key[hero.row + dir.y][hero.col + dir.x + 1].value[hero.type];
-        hash ^= zob_hash.key[hero.row + dir.y + 1][hero.col + dir.x].value[hero.type];
-        hash ^= zob_hash.key[hero.row + dir.y + 1][hero.col + dir.x + 1].value[hero.type];
+        hash ^= zob_hash.key[row + y][col + dir.x].value[0];
+        hash ^= zob_hash.key[row + y][col + dir.x + dx].value[0];
+        hash ^= zob_hash.key[row + y + 1][col + x].value[0];
+        hash ^= zob_hash.key[row + y + 1][col + x + dx].value[0];
+        hash ^= zob_hash.key[row + y][col + x].value[type];
+        hash ^= zob_hash.key[row + y][col + x + dx].value[type];
+        hash ^= zob_hash.key[row + y + 1][col + x].value[type];
+        hash ^= zob_hash.key[row + y + 1][col + x + dx].value[type];
         break;
     }
 
@@ -216,11 +218,6 @@ export default class Klotski {
   }
 
   isPositionAvailable(state: GameState, type: WarriorType, row: number, col: number): boolean {
-    if (DEBUG) {
-      console.log('is available');
-      console.log(type, row, col);
-    }
-
     let isOK: boolean = false;
 
     switch (type) {
@@ -340,12 +337,6 @@ export default class Klotski {
   }
 
   addGameStateHero(state: GameState, heroIdx: number, hero: Warrior): boolean {
-    if (DEBUG) {
-      console.log('hey yo', heroIdx, hero.type, hero.row, hero.col);
-      console.log(state.board);
-      console.log('---------');
-    }
-
     if (this.isPositionAvailable(state, hero.type, hero.row, hero.col)) {
       this.takePosition(state, heroIdx, hero.type, hero.row, hero.col);
       state.heroes.push(hero);
@@ -395,6 +386,9 @@ export default class Klotski {
       }
     }
 
+    state.hash = this.getZobristHash(state);
+    state.hashMirror = this.getMirrorZobristHash(state);
+
     return true;
   }
 
@@ -417,6 +411,7 @@ export default class Klotski {
       },
       step: 0,
       hash: 0,
+      hashMirror: 0,
       parent: null,
     };
 
@@ -430,12 +425,13 @@ export default class Klotski {
   }
 
   markGameState(game: Game, gameState: GameState) {
-    const l2rHash: number = this.getZobristHash(gameState);
-    game.zhash[`${l2rHash}`] = true;
+    //const l2rHash: number = this.getZobristHash(gameState);
+    const l2rHash = gameState.hash;
+    game.zhash[l2rHash] = true;
 
     if (NO_LR_MIRROR_ALLOW) {
-      const r2lHash: number = this.getMirrorZobristHash(gameState);
-      game.zhash[`${r2lHash}`] = true;
+      const r2lHash: number = gameState.hashMirror;
+      game.zhash[r2lHash] = true;
     }
   }
 
@@ -456,9 +452,6 @@ export default class Klotski {
 
   isEscaped(game: Game, gameState: GameState): boolean {
     const hero: Warrior = gameState.heroes[game.caoIdx - 1];
-    if (DEBUG) {
-      console.log(`${hero.type}, ${hero.row}, ${hero.col}`);
-    }
     return hero.row === CAO_ESCAPE_ROW && hero.col === CAO_ESCAPE_COL;
   }
 
@@ -492,7 +485,7 @@ export default class Klotski {
         if (DEBUG) {
           console.log('==============================');
         }
-        this.printGameState(gameState);
+        //this.printGameState(gameState);
 
         this.markGameState(game, gameState);
 
@@ -531,19 +524,32 @@ export default class Klotski {
   }
 
   trySearchHeroNewState(game: Game, gameState: GameState, heroIdx: number, dirIdx: number) {
-    const newState: ?GameState = this.moveHeroToNewState(gameState, heroIdx, dirIdx);
+    const newState: ?GameState = this.moveHeroToNewState(game, gameState, heroIdx, dirIdx);
 
     if (newState) {
       if (this.addNewStatePattern(game, newState)) {
-        this.printGameState(newState);
+        //(newState);
         this.tryHeroContinueMove(game, newState, heroIdx, dirIdx);
         return;
       }
     }
   }
 
-  moveHeroToNewState(gameState: GameState, heroIdx: number, dirIdx: number): ?GameState {
+  moveHeroToNewState(game: Game, gameState: GameState, heroIdx: number, dirIdx: number): ?GameState {
     if (this.canHeroMove(gameState, heroIdx, dirIdx)) {
+      const hash = this.getZobristHashUpdate(gameState, heroIdx, dirIdx);
+      if (game.zhash[hash]) {
+        return null;
+      }
+
+      let hashMirror: number = 0;
+      if (NO_LR_MIRROR_ALLOW) {
+        hashMirror = this.getZobristHashUpdate(gameState, heroIdx, dirIdx, true);
+        if (game.zhash[hashMirror]) {
+          return null;
+        }
+      }
+
       const newState: GameState = this.copyGameState(gameState);
       const hero: Warrior = newState.heroes[heroIdx];
       const dir: Direction = directions[dirIdx];
@@ -561,6 +567,11 @@ export default class Klotski {
       newState.move.heroIdx = heroIdx;
       newState.move.dirIdx = dirIdx;
 
+      newState.hash = hash;
+
+      if (NO_LR_MIRROR_ALLOW) {
+        newState.hashMirror = hashMirror;
+      }
       return newState;
     }
 
@@ -568,25 +579,26 @@ export default class Klotski {
   }
 
   addNewStatePattern(game: Game, gameState: GameState): boolean {
-    const l2rHash: number = this.getZobristHash(gameState);
+    //const l2rHash: number = this.getZobristHash(gameState);
+    const l2rHash: number = gameState.hash;
     let r2lHash: number = 0;
 
-    if (game.zhash[`${l2rHash}`]) {
+    if (game.zhash[l2rHash]) {
       return false;
     }
 
     if (NO_LR_MIRROR_ALLOW) {
-      r2lHash = this.getMirrorZobristHash(gameState);
+      r2lHash = gameState.hashMirror;
 
-      if (game.zhash[`${r2lHash}`]) {
+      if (game.zhash[r2lHash]) {
         return false;
       }
     }
 
-    game.zhash[`${l2rHash}`] = true;
+    game.zhash[l2rHash] = true;
 
     if (NO_LR_MIRROR_ALLOW) {
-      game.zhash[`${r2lHash}`] = true;
+      game.zhash[r2lHash] = true;
     }
 
     game.states.push(gameState);
@@ -597,7 +609,7 @@ export default class Klotski {
   tryHeroContinueMove(game: Game, gameState: GameState, heroIdx: number, lastDirIdx: number) {
     for (let d = 0; d < MAX_MOVE_DIRECTION; d++) {
       if (!this.isReverseDirection(d, lastDirIdx)) {
-        const newState: ?GameState = this.moveHeroToNewState(gameState, heroIdx, d);
+        const newState: ?GameState = this.moveHeroToNewState(game, gameState, heroIdx, d);
         if (newState) {
           if (this.addNewStatePattern(game, newState)) {
             newState.step--;

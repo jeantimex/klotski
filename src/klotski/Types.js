@@ -43,6 +43,7 @@ export type GameState = {
   move: MoveAction,
   step: number,
   hash: number,
+  hashMirror: number,
   parent: ?GameState,
 };
 

@@ -2,7 +2,7 @@ var path = require('path');
 var webpack = require('webpack');
 
 module.exports = {
-  entry: './src/klotski/index.js',
+  entry: './src/demo.js',
   output: {
     path: path.resolve(__dirname, 'build'),
     filename: 'index.js',
