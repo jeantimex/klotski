@@ -1,5 +1,4 @@
 // @flow
-import clone from 'clone';
 import { HT_BLOCK, HT_VBAR, HT_HBAR, HT_BOX } from './Types';
 import type {
   CellState,
@@ -36,10 +35,6 @@ const directions: Array<Direction> = [{ x: 0, y: 1 }, { x: 1, y: 0 }, { x: 0, y:
 const directionName: Array<string> = ['Down', 'Right', 'Up', 'Left'];
 
 let zob_hash: ZobristHash;
-
-let count = 0;
-
-let fileText = '';
 
 let level = 0;
 
@@ -202,9 +197,6 @@ export default class Klotski {
     for (let i = 0; i < MAX_WARRIOR_TYPE; i++) {
       cr.value[i] = this.random32();
     }
-    if (DEBUG) {
-      console.log(cr.value);
-    }
   }
 
   random32(): number {
@@ -240,10 +232,6 @@ export default class Klotski {
       default:
         isOK = false;
         break;
-    }
-
-    if (DEBUG) {
-      console.log(isOK);
     }
 
     return isOK;
@@ -455,38 +443,13 @@ export default class Klotski {
     return hero.row === CAO_ESCAPE_ROW && hero.col === CAO_ESCAPE_COL;
   }
 
-  printGameState(gameState: GameState) {
-    const hash = this.getZobristHash(gameState);
-
-    if (DEBUG) {
-      console.log(`[${level}] Game state hash : ${hash}`);
-      console.log(gameState.board);
-      console.log('------------------');
-    }
-
-    const heroes = gameState.heroes;
-    let str = '';
-    for (let i = 0; i < heroes.length; i++) {
-      const hero: Warrior = heroes[i];
-      str += `${hero.type}, ${hero.row}, ${hero.col},  `;
-    }
-
-    if (DEBUG) {
-      console.log(str);
-      console.log('------------------');
-    }
-  }
-
   resolveGame(game: Game): boolean {
-    while (game.states.length > 0) {
-      const gameState: ?GameState = game.states.shift();
+    let index = 0;
+
+    while (index < game.states.length) {
+      const gameState: ?GameState = game.states[index++];
 
       if (gameState) {
-        if (DEBUG) {
-          console.log('==============================');
-        }
-        //this.printGameState(gameState);
-
         this.markGameState(game, gameState);
 
         if (this.isEscaped(game, gameState)) {
@@ -499,15 +462,8 @@ export default class Klotski {
         }
       } else {
         level++;
-        if (DEBUG) {
-          console.log('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++');
-        }
         if (game.states.length > 0) {
           game.states.push(null);
-        }
-
-        if (level > 2) {
-          //break;
         }
       }
     }
@@ -527,11 +483,7 @@ export default class Klotski {
     const newState: ?GameState = this.moveHeroToNewState(game, gameState, heroIdx, dirIdx);
 
     if (newState) {
-      if (this.addNewStatePattern(game, newState)) {
-        //(newState);
-        this.tryHeroContinueMove(game, newState, heroIdx, dirIdx);
-        return;
-      }
+      this.tryHeroContinueMove(game, newState, heroIdx, dirIdx);
     }
   }
 
@@ -572,38 +524,14 @@ export default class Klotski {
       if (NO_LR_MIRROR_ALLOW) {
         newState.hashMirror = hashMirror;
       }
+
+      this.markGameState(game, newState);
+      game.states.push(newState);
+
       return newState;
     }
 
     return null;
-  }
-
-  addNewStatePattern(game: Game, gameState: GameState): boolean {
-    //const l2rHash: number = this.getZobristHash(gameState);
-    const l2rHash: number = gameState.hash;
-    let r2lHash: number = 0;
-
-    if (game.zhash[l2rHash]) {
-      return false;
-    }
-
-    if (NO_LR_MIRROR_ALLOW) {
-      r2lHash = gameState.hashMirror;
-
-      if (game.zhash[r2lHash]) {
-        return false;
-      }
-    }
-
-    game.zhash[l2rHash] = true;
-
-    if (NO_LR_MIRROR_ALLOW) {
-      game.zhash[r2lHash] = true;
-    }
-
-    game.states.push(gameState);
-
-    return true;
   }
 
   tryHeroContinueMove(game: Game, gameState: GameState, heroIdx: number, lastDirIdx: number) {
@@ -611,17 +539,13 @@ export default class Klotski {
       if (!this.isReverseDirection(d, lastDirIdx)) {
         const newState: ?GameState = this.moveHeroToNewState(game, gameState, heroIdx, d);
         if (newState) {
-          if (this.addNewStatePattern(game, newState)) {
-            newState.step--;
-          } else {
-            return;
-          }
+          newState.step--;
+        } else {
+          return;
         }
       }
     }
   }
-
-  releseGame(game: Game) {}
 
   solve(start: StartPosition): number {
     const game: Game = {
@@ -643,8 +567,6 @@ export default class Klotski {
       } else {
         console.log(`Not find result for this layout!`);
       }
-
-      this.releseGame(game);
     }
 
     return 0;
