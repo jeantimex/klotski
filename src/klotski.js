@@ -37,7 +37,35 @@
     }
 
     function copyGameState(gameState) {
-      return JSON.parse(JSON.stringify(gameState));
+      var i, j;
+      var newBoard = [];
+      for (i = 0; i < HRD_BOARD_HEIGHT; i++) {
+        newBoard[i] = gameState.board[i].slice(0);
+      }
+
+      var newHeroes = [];
+      for (i = 0; i < gameState.heroes.length; i++) {
+        newHeroes[i] = {
+          type: gameState.heroes[i].type,
+          row: gameState.heroes[i].row,
+          col: gameState.heroes[i].col,
+        };
+      }
+
+      var newState = {
+        board: newBoard,
+        heroes: newHeroes,
+        move: {
+          heroIdx: gameState.move.heroIdx,
+          dirIdx: gameState.move.dirIdx,
+        },
+        step: gameState.step,
+        hash: gameState.hash,
+        hashMirror: gameState.hashMirror,
+        parent: gameState.parent,
+      };
+
+      return newState;
     }
 
     function directionStringFromIndex(dirIdx) {
@@ -158,9 +186,7 @@
         zob_hash.key[i] = [];
 
         for (j = 0; j < HRD_GAME_COL; j++) {
-          zob_hash.key[i][j] = {
-            value: []
-          };
+          zob_hash.key[i][j] = { value: [] };
           makeCellState(zob_hash.key[i][j]);
         }
       }
@@ -180,7 +206,7 @@
         tmp = Math.floor(Math.random() * Math.pow(2, 31));
       } while (!tmp);
 
-      return tmp;
+      return parseInt(tmp);
     }
 
     function isPositionAvailable(state, type, row, col) {
@@ -382,7 +408,6 @@
 
       if (initHdrGameState(state, start.heroCount, start.heroInfo)) {
         game.states.push(state);
-        game.states.push(null);
         return true;
       }
 
@@ -425,22 +450,15 @@
       while (index < game.states.length) {
         var gameState = game.states[index++];
 
-        if (gameState) {
-          markGameState(game, gameState);
+        markGameState(game, gameState);
 
-          if (isEscaped(game, gameState)) {
-            game.result++;
+        if (isEscaped(game, gameState)) {
+          game.result++;
 
-            outputMoveRecords(game, gameState);
-            break;
-          } else {
-            searchNewGameStates(game, gameState);
-          }
+          outputMoveRecords(game, gameState);
+          break;
         } else {
-          level++;
-          if (game.states.length > 0) {
-            game.states.push(null);
-          }
+          searchNewGameStates(game, gameState);
         }
       }
 
@@ -564,7 +582,7 @@
      * @param {Object} start - Starting positions 
      */
     this.solve = function(start) {
-      console.time('solve');
+      console.time('initialize');
       var game = {
         caoIdx: 0,
         gameName: '',
@@ -577,14 +595,15 @@
       initZobristHash();
 
       if (initHrdGame(game, start)) {
+        console.timeEnd('initialize');
         console.log('Find result for layout : ', game.gameName);
-
+        console.time('solve');
         if (resolveGame(game)) {
-          console.timeEnd('solve');
           console.log('Find ', game.result, ' result(s) totally!');
         } else {
           console.log('Not find result for this layout!');
         }
+        console.timeEnd('solve');
       }
 
       return 0;
