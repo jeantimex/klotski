@@ -68,14 +68,6 @@
       return newState;
     }
 
-    function directionStringFromIndex(dirIdx) {
-      //assert(dirIdx >= 0 && dirIdx < MAX_MOVE_DIRECTION);
-      if (dirIdx >= 0 && dirIdx < MAX_MOVE_DIRECTION) {
-        return directionName[dirIdx];
-      }
-      return '';
-    }
-
     function getZobristHash(gameState) {
       var i, j;
       var hash = 0;
@@ -354,45 +346,8 @@
       }
     }
 
-    function initHdrGameState(state, heroCount, heroInfo) {
+    function initHdrGameState(game, heroes) {
       var i;
-      initGameStateBoard(state);
-
-      state.parent = null;
-      state.step = 0;
-      state.move.heroIdx = 0;
-      state.move.dirIdx = 0;
-
-      for (i = 0; i < heroCount; i++) {
-        var hero = {
-          type: heroInfo[i * 3],
-          row: heroInfo[i * 3 + 1],
-          col: heroInfo[i * 3 + 2],
-        };
-
-        if (!addGameStateHero(state, i, hero)) {
-          return false;
-        }
-      }
-
-      state.hash = getZobristHash(state);
-      state.hashMirror = getMirrorZobristHash(state);
-
-      return true;
-    }
-
-    function initHrdGame(game, start) {
-      var i;
-
-      game.result = 0;
-      game.gameName = start.startName;
-
-      for (i = 0; i < start.heroCount; i++) {
-        game.heroNames.push(start.heroName[i]);
-      }
-
-      game.caoIdx = start.caoIdx;
-
       var state = {
         board: [],
         heroes: [],
@@ -406,8 +361,46 @@
         parent: null,
       };
 
-      if (initHdrGameState(state, start.heroCount, start.heroInfo)) {
-        game.states.push(state);
+      initGameStateBoard(state);
+
+      state.parent = null;
+      state.step = 0;
+      state.move.heroIdx = 0;
+      state.move.dirIdx = 0;
+
+      for (i = 0; i < heroes.length; i++) {
+        var hero = {
+          type: heroes[i].type,
+          row: heroes[i].position[0],
+          col: heroes[i].position[1],
+        };
+
+        if (heroes[i].type === 4) {
+          game.caoIdx = i;
+        }
+
+        if (!addGameStateHero(state, i, hero)) {
+          return false;
+        }
+      }
+
+      state.hash = getZobristHash(state);
+      state.hashMirror = getMirrorZobristHash(state);
+
+      game.states.push(state);
+
+      return true;
+    }
+
+    function initHrdGame(game, start) {
+      var i;
+
+      game.result = {
+        time: null,
+        moves: [],
+      };
+
+      if (initHdrGameState(game, start.heroes)) {
         return true;
       }
 
@@ -425,22 +418,22 @@
     }
 
     function outputMoveRecords(game, gameState) {
-      console.log('Find Result ', game.result, ' total ', gameState.step, ' steps');
-
       var state = gameState;
       while (state) {
         if (state.step > 0) {
-          var curMove = state.move;
-          var curDirection = directionStringFromIndex(curMove.dirIdx);
-          console.log('Step ', state.step, ' : ', game.heroNames[curMove.heroIdx], ' move ', curDirection);
+          var move = {
+            step: state.step,
+            heroIdx: state.move.heroIdx,
+            dirIdx: state.move.dirIdx,
+          };
+          game.result.moves.push(move);
         }
-
         state = state.parent;
       }
     }
 
     function isEscaped(game, gameState) {
-      var hero = gameState.heroes[game.caoIdx - 1];
+      var hero = gameState.heroes[game.caoIdx];
       return hero.row === CAO_ESCAPE_ROW && hero.col === CAO_ESCAPE_COL;
     }
 
@@ -453,16 +446,14 @@
         markGameState(game, gameState);
 
         if (isEscaped(game, gameState)) {
-          game.result++;
-
           outputMoveRecords(game, gameState);
-          break;
+          return true;
         } else {
           searchNewGameStates(game, gameState);
         }
       }
 
-      return game.result > 0;
+      return false;
     }
 
     function searchNewGameStates(game, gameState) {
@@ -582,12 +573,9 @@
      * @param {Object} start - Starting positions 
      */
     this.solve = function(start) {
-      console.time('initialize');
       var game = {
         caoIdx: 0,
-        gameName: '',
-        heroNames: [],
-        result: 0,
+        result: {},
         states: [],
         zhash: {},
       };
@@ -595,18 +583,12 @@
       initZobristHash();
 
       if (initHrdGame(game, start)) {
-        console.timeEnd('initialize');
-        console.log('Find result for layout : ', game.gameName);
-        console.time('solve');
         if (resolveGame(game)) {
-          console.log('Find ', game.result, ' result(s) totally!');
-        } else {
-          console.log('Not find result for this layout!');
+          return game.result.moves;
         }
-        console.timeEnd('solve');
       }
 
-      return 0;
+      return null;
     };
   }
 
