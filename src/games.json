@@ -2,16 +2,16 @@
   {
     "name": "横刀立马",
     "heroes": [
-    { "name": "张飞", "type": 2, "position": [0, 0] },
-    { "name": "曹操", "type": 4, "position": [0, 1] },
-    { "name": "黄忠", "type": 2, "position": [0, 3] },
-    { "name": "赵云", "type": 2, "position": [2, 0] },
-    { "name": "关羽", "type": 3, "position": [2, 1] },
-    { "name": "马超", "type": 2, "position": [2, 3] },
-    { "name": "兵一", "type": 1, "position": [4, 0] },
-    { "name": "兵二", "type": 1, "position": [3, 1] },
-    { "name": "兵三", "type": 1, "position": [3, 2] },
-    { "name": "兵四", "type": 1, "position": [4, 3] }
+      { "name": "张飞", "type": 2, "position": [0, 0] },
+      { "name": "曹操", "type": 4, "position": [0, 1] },
+      { "name": "黄忠", "type": 2, "position": [0, 3] },
+      { "name": "赵云", "type": 2, "position": [2, 0] },
+      { "name": "关羽", "type": 3, "position": [2, 1] },
+      { "name": "马超", "type": 2, "position": [2, 3] },
+      { "name": "兵一", "type": 1, "position": [4, 0] },
+      { "name": "兵二", "type": 1, "position": [3, 1] },
+      { "name": "兵三", "type": 1, "position": [3, 2] },
+      { "name": "兵四", "type": 1, "position": [4, 3] }
     ]
   }
 ]
