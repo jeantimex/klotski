@@ -2,7 +2,7 @@
   "name": "klotski",
   "version": "0.0.2",
   "description": "The JavaScript algorithm for solving klotski game.",
-  "main": "index.js",
+  "main": "src/klotski.js",
   "repository": "https://github.com/jeantimex/klotski.git",
   "author": "jeantimex <jean.timex@gmail.com>",
   "license": "MIT",
