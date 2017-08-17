@@ -47,6 +47,7 @@ inquirer
     console.log('Publishing to npm...');
 
     // Step 5. NPM publish
+    execSync('npm login', execOptions);
     execSync('npm publish', execOptions);
     console.log('Done');
   });
