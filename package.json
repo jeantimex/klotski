@@ -1,6 +1,6 @@
 {
   "name": "klotski",
-  "version": "0.0.3",
+  "version": "0.0.5",
   "description": "The JavaScript algorithm for solving klotski game.",
   "main": "src/klotski.js",
   "repository": "https://github.com/jeantimex/klotski.git",
@@ -10,6 +10,7 @@
     "lint": "eslint src",
     "test": "npm run lint && mocha",
     "build": "gulp",
+    "release": "node scripts/release.js",
     "demo": "node src/demo.js"
   },
   "devDependencies": {
@@ -23,5 +24,8 @@
     "mocha": "^3.5.0",
     "prettier": "^1.5.3",
     "pump": "^1.0.2"
+  },
+  "dependencies": {
+    "inquirer": "^3.2.2"
   }
 }
