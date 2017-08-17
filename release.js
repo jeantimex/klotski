@@ -38,7 +38,7 @@ inquirer
     console.log('New release bundle is built!');
 
     // Step 3. Git push the changes for package.json and release bundle
-    console.log('Push new changes...');
+    console.log('Pushing new changes...');
     var message = 'Release ' + version;
     execSync('git commit -am "' + message + '"');
     execSync('git push');
