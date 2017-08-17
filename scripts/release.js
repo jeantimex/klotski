@@ -28,6 +28,10 @@ inquirer
     // Step 2. Cut a new build
     execSync('npm run build', execOptions);
     // Step 3. Git push
+    var pkg = require(path.join(__dirname, '..', 'package.json'));
+    var message = 'Release ' + pkg.version;
+    execSync('git commit -am "' + message + '"');
+    execSync('git push');
     // Step 4. NPM publish
-    var semver = answer.semver;
+    execSync('npm publish');
   });
