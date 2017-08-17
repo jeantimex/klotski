@@ -346,8 +346,17 @@
       }
     }
 
-    function initHdrGameState(game, heroes) {
-      var i;
+    function createGame(heroes) {
+      var game = {
+        caoIdx: 0,
+        states: [],
+        zhash: {},
+        result: {
+          time: null,
+          moves: [],
+        },
+      };
+
       var state = {
         board: [],
         heroes: [],
@@ -361,6 +370,7 @@
         parent: null,
       };
 
+      initZobristHash();
       initGameStateBoard(state);
 
       state.parent = null;
@@ -368,7 +378,7 @@
       state.move.heroIdx = 0;
       state.move.dirIdx = 0;
 
-      for (i = 0; i < heroes.length; i++) {
+      for (var i = 0; i < heroes.length; i++) {
         var hero = {
           type: heroes[i].type,
           row: heroes[i].position[0],
@@ -380,7 +390,7 @@
         }
 
         if (!addGameStateHero(state, i, hero)) {
-          return false;
+          return null;
         }
       }
 
@@ -389,22 +399,7 @@
 
       game.states.push(state);
 
-      return true;
-    }
-
-    function initHrdGame(game, start) {
-      var i;
-
-      game.result = {
-        time: null,
-        moves: [],
-      };
-
-      if (initHdrGameState(game, start.heroes)) {
-        return true;
-      }
-
-      return false;
+      return game;
     }
 
     function markGameState(game, gameState) {
@@ -457,9 +452,8 @@
     }
 
     function searchNewGameStates(game, gameState) {
-      var i, j;
-      for (i = 0; i < gameState.heroes.length; i++) {
-        for (j = 0; j < MAX_MOVE_DIRECTION; j++) {
+      for (var i = 0; i < gameState.heroes.length; i++) {
+        for (var j = 0; j < MAX_MOVE_DIRECTION; j++) {
           trySearchHeroNewState(game, gameState, i, j);
         }
       }
@@ -554,10 +548,9 @@
      * @param {Number} lastDirIdx
      */
     function tryHeroContinueMove(game, gameState, heroIdx, lastDirIdx) {
-      var d, newState;
-      for (d = 0; d < MAX_MOVE_DIRECTION; d++) {
+      for (var d = 0; d < MAX_MOVE_DIRECTION; d++) {
         if (!isReverseDirection(d, lastDirIdx)) {
-          newState = moveHeroToNewState(game, gameState, heroIdx, d);
+          var newState = moveHeroToNewState(game, gameState, heroIdx, d);
           if (newState) {
             if (addNewStatePattern(game, newState)) {
               newState.step--;
@@ -570,19 +563,13 @@
     /**
      * Solve a klotski game
      * 
-     * @param {Object} start - Starting positions 
+     * @param {Array} heroes - Starting positions
+     * @param {Object} options - Game configuration 
      */
-    this.solve = function(start) {
-      var game = {
-        caoIdx: 0,
-        result: {},
-        states: [],
-        zhash: {},
-      };
+    this.solve = function(heroes, options) {
+      var game = createGame(heroes);
 
-      initZobristHash();
-
-      if (initHrdGame(game, start)) {
+      if (game) {
         if (resolveGame(game)) {
           return game.result.moves;
         }
