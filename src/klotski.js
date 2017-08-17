@@ -1,4 +1,4 @@
-(function () {
+(function() {
   'use strict';
 
   var HT_BLOCK = 1;
@@ -202,17 +202,19 @@
     }
 
     function isPositionAvailable(state, type, row, col) {
-      let isOK = false;
+      var isOK = false;
 
       switch (type) {
         case HT_BLOCK:
           isOK = state.board[row + 1][col + 1] === BOARD_CELL_EMPTY;
           break;
         case HT_VBAR:
-          isOK = state.board[row + 1][col + 1] === BOARD_CELL_EMPTY && state.board[row + 2][col + 1] === BOARD_CELL_EMPTY;
+          isOK =
+            state.board[row + 1][col + 1] === BOARD_CELL_EMPTY && state.board[row + 2][col + 1] === BOARD_CELL_EMPTY;
           break;
         case HT_HBAR:
-          isOK = state.board[row + 1][col + 1] === BOARD_CELL_EMPTY && state.board[row + 1][col + 2] === BOARD_CELL_EMPTY;
+          isOK =
+            state.board[row + 1][col + 1] === BOARD_CELL_EMPTY && state.board[row + 1][col + 2] === BOARD_CELL_EMPTY;
           break;
         case HT_BOX:
           isOK =
