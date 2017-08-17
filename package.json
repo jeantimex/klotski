@@ -10,7 +10,7 @@
     "lint": "eslint src",
     "test": "npm run lint && mocha",
     "build": "gulp",
-    "release": "node scripts/release.js",
+    "release": "node ./release.js",
     "demo": "node src/demo.js"
   },
   "devDependencies": {
