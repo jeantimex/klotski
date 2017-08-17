@@ -37,16 +37,16 @@ inquirer
     // Step 3. Git push the changes for package.json and release bundle
     console.log('Push new changes...');
     var message = 'Release ' + version;
-    execSync('git commit -am "' + message + '"');
-    execSync('git push');
+    execSync('git commit -am "' + message + '"', execOptions);
+    execSync('git push', execOptions);
 
     // Step 4. Tag the new version
     console.log('Tag new version ' + version);
-    execSync('git tag ' + version);
-    execSync('git push origin ' + version);
+    execSync('git tag ' + version, execOptions);
+    execSync('git push origin ' + version, execOptions);
     console.log('Publishing to npm...');
 
     // Step 5. NPM publish
-    execSync('npm publish');
+    execSync('npm publish', execOptions);
     console.log('Done');
   });
