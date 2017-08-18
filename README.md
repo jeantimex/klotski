@@ -28,7 +28,7 @@ If you are not using any module loader system then the API will then be accessib
 
 **CDN**
 
-The latest version is now also always available at https://unpkg.co/klotski/dist/klotski.min.js
+The latest version is now also always available at https://unpkg.org/pkg/klotski/
 
 ```html
 <script src="https://unpkg.co/klotski/dist/klotski.min.js"></script>
