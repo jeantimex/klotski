@@ -6,6 +6,54 @@ The JavaScript algorithm for solving klotski game.
 [![Build Status](https://travis-ci.org/jeantimex/klotski.svg?branch=master)](https://travis-ci.org/jeantimex/klotski)
 [![Coverage Status](https://coveralls.io/repos/github/jeantimex/klotski/badge.svg?branch=master)](https://coveralls.io/github/jeantimex/klotski?branch=master)
 
+## Installation
+
+### node.js
+
+Install using npm:
+
+```bash
+$ npm install klotski
+```
+
+### Browser
+
+Using bower:
+
+```bash
+$ bower install klotski
+```
+
+If you are not using any module loader system then the API will then be accessible via the `window.Klotski` object.
+
+**CDN**
+
+The latest version is now also always available at https://unpkg.co/klotski/dist/klotski.min.js
+
+## Usage
+
+**Default usage**
+
+```javascript
+var Klotski = require('klotski');
+
+var klotski = new Klotski();
+var heroes = [
+  { "type": 2, "position": [0, 0] },
+  { "type": 4, "position": [0, 1] },
+  { "type": 2, "position": [0, 3] },
+  { "type": 2, "position": [2, 0] },
+  { "type": 3, "position": [2, 1] },
+  { "type": 2, "position": [2, 3] },
+  { "type": 1, "position": [4, 0] },
+  { "type": 1, "position": [3, 1] },
+  { "type": 1, "position": [3, 2] },
+  { "type": 1, "position": [4, 3] }
+];
+
+var result = klotski.solve(heroes);
+```
+
 ## Contribution
 
 Anyone who would like to contribute to the project is more than welcome.
