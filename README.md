@@ -60,6 +60,8 @@ var result = klotski.solve(heroes);
 
 ## Benchmark
 
+The average running time is calculated by solving each of the game 100 times.
+
 | Game  | Min Steps | Avg. Time (ms) |
 | ----- | --------- | -------------- |
 | 横刀立马 | 81 | 65.717 |
