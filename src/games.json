@@ -2,16 +2,601 @@
   {
     "name": "横刀立马",
     "heroes": [
-      { "name": "张飞", "type": 2, "position": [0, 0] },
-      { "name": "曹操", "type": 4, "position": [0, 1] },
-      { "name": "黄忠", "type": 2, "position": [0, 3] },
-      { "name": "赵云", "type": 2, "position": [2, 0] },
-      { "name": "关羽", "type": 3, "position": [2, 1] },
-      { "name": "马超", "type": 2, "position": [2, 3] },
-      { "name": "兵一", "type": 1, "position": [4, 0] },
-      { "name": "兵二", "type": 1, "position": [3, 1] },
-      { "name": "兵三", "type": 1, "position": [3, 2] },
-      { "name": "兵四", "type": 1, "position": [4, 3] }
+      {"type": 4, "position": [0, 1]},
+      {"type": 2, "position": [0, 0]},
+      {"type": 2, "position": [0, 3]},
+      {"type": 2, "position": [2, 0]},
+      {"type": 2, "position": [2, 3]},
+      {"type": 3, "position": [2, 1]},
+      {"type": 1, "position": [3, 1]},
+      {"type": 1, "position": [3, 2]},
+      {"type": 1, "position": [4, 0]},
+      {"type": 1, "position": [4, 3]}
+    ]
+  },
+  {
+    "name": "指挥若定",
+    "heroes": [
+      {"type": 4, "position": [0, 1]},
+      {"type": 2, "position": [0, 0]},
+      {"type": 2, "position": [0, 3]},
+      {"type": 2, "position": [3, 0]},
+      {"type": 2, "position": [3, 3]},
+      {"type": 3, "position": [2, 1]},
+      {"type": 1, "position": [2, 0]},
+      {"type": 1, "position": [2, 3]},
+      {"type": 1, "position": [3, 1]},
+      {"type": 1, "position": [3, 2]}
+    ]
+  },
+  {
+    "name": "将拥曹营",
+    "heroes": [
+      {"type": 4, "position": [0, 1]},
+      {"type": 2, "position": [1, 0]},
+      {"type": 2, "position": [1, 3]},
+      {"type": 2, "position": [2, 1]},
+      {"type": 2, "position": [2, 2]},
+      {"type": 3, "position": [4, 0]},
+      {"type": 1, "position": [3, 0]},
+      {"type": 1, "position": [3, 3]},
+      {"type": 1, "position": [4, 2]},
+      {"type": 1, "position": [4, 3]}
+    ]
+  },
+  {
+    "name": "齐头并进",
+    "heroes": [
+      {"type": 4, "position": [0, 1]},
+      {"type": 2, "position": [0, 0]},
+      {"type": 2, "position": [0, 3]},
+      {"type": 2, "position": [3, 0]},
+      {"type": 2, "position": [3, 3]},
+      {"type": 3, "position": [3, 1]},
+      {"type": 1, "position": [2, 0]},
+      {"type": 1, "position": [2, 1]},
+      {"type": 1, "position": [2, 2]},
+      {"type": 1, "position": [2, 3]}
+    ]
+  },
+  {
+    "name": "并分三路",
+    "heroes": [
+      {"type": 4, "position": [0, 1]},
+      {"type": 2, "position": [1, 0]},
+      {"type": 2, "position": [1, 3]},
+      {"type": 2, "position": [3, 0]},
+      {"type": 2, "position": [3, 3]},
+      {"type": 3, "position": [2, 1]},
+      {"type": 1, "position": [0, 0]},
+      {"type": 1, "position": [0, 3]},
+      {"type": 1, "position": [3, 1]},
+      {"type": 1, "position": [3, 2]}
+    ]
+  },
+  {
+    "name": "雨声淅沥",
+    "heroes": [
+      {"type": 4, "position": [0, 1]},
+      {"type": 2, "position": [0, 0]},
+      {"type": 2, "position": [2, 0]},
+      {"type": 2, "position": [2, 3]},
+      {"type": 2, "position": [3, 1]},
+      {"type": 3, "position": [2, 1]},
+      {"type": 1, "position": [0, 3]},
+      {"type": 1, "position": [1, 3]},
+      {"type": 1, "position": [4, 0]},
+      {"type": 1, "position": [4, 3]}
+    ]
+  },
+  {
+    "name": "左右布兵",
+    "heroes": [
+      {"type": 4, "position": [0, 1]},
+      {"type": 2, "position": [2, 0]},
+      {"type": 2, "position": [2, 1]},
+      {"type": 2, "position": [2, 2]},
+      {"type": 2, "position": [2, 3]},
+      {"type": 3, "position": [4, 1]},
+      {"type": 1, "position": [0, 0]},
+      {"type": 1, "position": [0, 3]},
+      {"type": 1, "position": [1, 0]},
+      {"type": 1, "position": [1, 3]}
+    ]
+  },
+  {
+    "name": "桃花园中",
+    "heroes": [
+      {"type": 4, "position": [0, 1]},
+      {"type": 2, "position": [1, 0]},
+      {"type": 2, "position": [1, 3]},
+      {"type": 2, "position": [2, 1]},
+      {"type": 2, "position": [2, 2]},
+      {"type": 3, "position": [4, 1]},
+      {"type": 1, "position": [0, 0]},
+      {"type": 1, "position": [0, 3]},
+      {"type": 1, "position": [3, 0]},
+      {"type": 1, "position": [3, 3]}
+    ]
+  },
+  {
+    "name": "一路进军",
+    "heroes": [
+      {"type": 4, "position": [0, 1]},
+      {"type": 2, "position": [0, 0]},
+      {"type": 2, "position": [2, 0]},
+      {"type": 2, "position": [2, 1]},
+      {"type": 2, "position": [2, 2]},
+      {"type": 3, "position": [4, 1]},
+      {"type": 1, "position": [0, 3]},
+      {"type": 1, "position": [1, 3]},
+      {"type": 1, "position": [2, 3]},
+      {"type": 1, "position": [3, 3]}
+    ]
+  },
+  {
+    "name": "一路顺风",
+    "heroes": [
+      {"type": 4, "position": [0, 1]},
+      {"type": 2, "position": [0, 0]},
+      {"type": 2, "position": [2, 0]},
+      {"type": 2, "position": [2, 3]},
+      {"type": 2, "position": [3, 2]},
+      {"type": 3, "position": [2, 1]},
+      {"type": 1, "position": [0, 3]},
+      {"type": 1, "position": [1, 3]},
+      {"type": 1, "position": [3, 1]},
+      {"type": 1, "position": [4, 1]}
+    ]
+  },
+  {
+    "name": "围而不歼",
+    "heroes": [
+      {"type": 4, "position": [0, 1]},
+      {"type": 2, "position": [0, 0]},
+      {"type": 2, "position": [2, 0]},
+      {"type": 2, "position": [3, 1]},
+      {"type": 2, "position": [3, 2]},
+      {"type": 3, "position": [2, 1]},
+      {"type": 1, "position": [0, 3]},
+      {"type": 1, "position": [1, 3]},
+      {"type": 1, "position": [2, 3]},
+      {"type": 1, "position": [3, 3]}
+    ]
+  },
+  {
+    "name": "捷足先登",
+    "heroes": [
+      {"type": 4, "position": [0, 1]},
+      {"type": 2, "position": [3, 0]},
+      {"type": 2, "position": [3, 1]},
+      {"type": 2, "position": [3, 2]},
+      {"type": 2, "position": [3, 3]},
+      {"type": 3, "position": [2, 1]},
+      {"type": 1, "position": [0, 0]},
+      {"type": 1, "position": [0, 3]},
+      {"type": 1, "position": [1, 0]},
+      {"type": 1, "position": [1, 3]}
+    ]
+  },
+  {
+    "name": "插翅难飞",
+    "heroes": [
+      {"type": 4, "position": [0, 1]},
+      {"type": 2, "position": [0, 0]},
+      {"type": 2, "position": [3, 0]},
+      {"type": 2, "position": [3, 3]},
+      {"type": 3, "position": [2, 0]},
+      {"type": 3, "position": [3, 1]},
+      {"type": 1, "position": [0, 3]},
+      {"type": 1, "position": [1, 3]},
+      {"type": 1, "position": [2, 2]},
+      {"type": 1, "position": [2, 3]}
+    ]
+  },
+  {
+    "name": "守口如瓶",
+    "heroes": [
+      {"type": 4, "position": [0, 1]},
+      {"type": 2, "position": [0, 0]},
+      {"type": 2, "position": [0, 3]},
+      {"type": 2, "position": [2, 1]},
+      {"type": 3, "position": [4, 0]},
+      {"type": 3, "position": [4, 2]},
+      {"type": 1, "position": [2, 0]},
+      {"type": 1, "position": [2, 3]},
+      {"type": 1, "position": [3, 0]},
+      {"type": 1, "position": [3, 3]}
+    ]
+  },
+  {
+    "name": "守口如瓶",
+    "heroes": [
+      {"type": 4, "position": [0, 1]},
+      {"type": 2, "position": [1, 0]},
+      {"type": 2, "position": [1, 3]},
+      {"type": 2, "position": [2, 1]},
+      {"type": 3, "position": [4, 0]},
+      {"type": 3, "position": [4, 2]},
+      {"type": 1, "position": [0, 0]},
+      {"type": 1, "position": [0, 3]},
+      {"type": 1, "position": [3, 0]},
+      {"type": 1, "position": [3, 3]}
+    ]
+  },
+  {
+    "name": "双将挡路",
+    "heroes": [
+      {"type": 4, "position": [0, 1]},
+      {"type": 2, "position": [0, 0]},
+      {"type": 2, "position": [2, 0]},
+      {"type": 2, "position": [2, 3]},
+      {"type": 3, "position": [2, 1]},
+      {"type": 3, "position": [3, 1]},
+      {"type": 1, "position": [0, 3]},
+      {"type": 1, "position": [1, 3]},
+      {"type": 1, "position": [4, 0]},
+      {"type": 1, "position": [4, 3]}
+    ]
+  },
+  {
+    "name": "横马当关",
+    "heroes": [
+      {"type": 4, "position": [0, 1]},
+      {"type": 2, "position": [0, 0]},
+      {"type": 2, "position": [0, 3]},
+      {"type": 2, "position": [3, 1]},
+      {"type": 3, "position": [2, 0]},
+      {"type": 3, "position": [2, 2]},
+      {"type": 1, "position": [3, 0]},
+      {"type": 1, "position": [3, 3]},
+      {"type": 1, "position": [4, 0]},
+      {"type": 1, "position": [4, 3]}
+    ]
+  },
+  {
+    "name": "层层设防",
+    "heroes": [
+      {"type": 4, "position": [0, 1]},
+      {"type": 2, "position": [0, 0]},
+      {"type": 2, "position": [0, 3]},
+      {"type": 3, "position": [2, 1]},
+      {"type": 3, "position": [3, 1]},
+      {"type": 3, "position": [4, 1]},
+      {"type": 1, "position": [2, 0]},
+      {"type": 1, "position": [2, 3]},
+      {"type": 1, "position": [3, 0]},
+      {"type": 1, "position": [3, 3]}
+    ]
+  },
+  {
+    "name": "层层设防",
+    "heroes": [
+      {"type": 4, "position": [0, 1]},
+      {"type": 2, "position": [1, 0]},
+      {"type": 2, "position": [1, 3]},
+      {"type": 3, "position": [2, 1]},
+      {"type": 3, "position": [3, 1]},
+      {"type": 3, "position": [4, 1]},
+      {"type": 1, "position": [0, 0]},
+      {"type": 1, "position": [0, 3]},
+      {"type": 1, "position": [3, 0]},
+      {"type": 1, "position": [3, 3]}
+    ]
+  },
+  {
+    "name": "兵挡将阻",
+    "heroes": [
+      {"type": 4, "position": [0, 1]},
+      {"type": 2, "position": [0, 3]},
+      {"type": 2, "position": [2, 0]},
+      {"type": 3, "position": [2, 1]},
+      {"type": 3, "position": [3, 1]},
+      {"type": 3, "position": [4, 1]},
+      {"type": 1, "position": [0, 0]},
+      {"type": 1, "position": [1, 0]},
+      {"type": 1, "position": [2, 3]},
+      {"type": 1, "position": [3, 3]}
+    ]
+  },
+  {
+    "name": "堵塞要道",
+    "heroes": [
+      {"type": 4, "position": [0, 1]},
+      {"type": 2, "position": [2, 0]},
+      {"type": 2, "position": [2, 1]},
+      {"type": 3, "position": [2, 2]},
+      {"type": 3, "position": [3, 2]},
+      {"type": 3, "position": [4, 1]},
+      {"type": 1, "position": [0, 0]},
+      {"type": 1, "position": [0, 3]},
+      {"type": 1, "position": [1, 0]},
+      {"type": 1, "position": [1, 3]}
+    ]
+  },
+  {
+    "name": "瓮中之鳖",
+    "heroes": [
+      {"type": 4, "position": [0, 1]},
+      {"type": 2, "position": [0, 0]},
+      {"type": 2, "position": [0, 3]},
+      {"type": 3, "position": [2, 0]},
+      {"type": 3, "position": [2, 2]},
+      {"type": 3, "position": [3, 1]},
+      {"type": 1, "position": [3, 0]},
+      {"type": 1, "position": [3, 3]},
+      {"type": 1, "position": [4, 0]},
+      {"type": 1, "position": [4, 3]}
+    ]
+  },
+  {
+    "name": "层峦叠嶂",
+    "heroes": [
+      {"type": 4, "position": [0, 1]},
+      {"type": 2, "position": [0, 0]},
+      {"type": 2, "position": [0, 3]},
+      {"type": 3, "position": [2, 1]},
+      {"type": 3, "position": [3, 0]},
+      {"type": 3, "position": [3, 2]},
+      {"type": 1, "position": [2, 0]},
+      {"type": 1, "position": [2, 3]},
+      {"type": 1, "position": [4, 0]},
+      {"type": 1, "position": [4, 3]}
+    ]
+  },
+  {
+    "name": "水泄不通",
+    "heroes": [
+      {"type": 4, "position": [0, 1]},
+      {"type": 2, "position": [0, 0]},
+      {"type": 3, "position": [2, 0]},
+      {"type": 3, "position": [2, 2]},
+      {"type": 3, "position": [3, 0]},
+      {"type": 3, "position": [3, 2]},
+      {"type": 1, "position": [0, 3]},
+      {"type": 1, "position": [1, 3]},
+      {"type": 1, "position": [4, 0]},
+      {"type": 1, "position": [4, 3]}
+    ]
+  },
+  {
+    "name": "四路进兵",
+    "heroes": [
+      {"type": 4, "position": [0, 1]},
+      {"type": 2, "position": [2, 0]},
+      {"type": 3, "position": [2, 2]},
+      {"type": 3, "position": [3, 2]},
+      {"type": 3, "position": [4, 0]},
+      {"type": 3, "position": [4, 2]},
+      {"type": 1, "position": [0, 0]},
+      {"type": 1, "position": [0, 3]},
+      {"type": 1, "position": [1, 0]},
+      {"type": 1, "position": [1, 3]}
+    ]
+  },
+  {
+    "name": "入地无门",
+    "heroes": [
+      {"type": 4, "position": [0, 1]},
+      {"type": 2, "position": [0, 0]},
+      {"type": 3, "position": [2, 1]},
+      {"type": 3, "position": [3, 0]},
+      {"type": 3, "position": [3, 2]},
+      {"type": 3, "position": [4, 1]},
+      {"type": 1, "position": [0, 3]},
+      {"type": 1, "position": [1, 3]},
+      {"type": 1, "position": [2, 0]},
+      {"type": 1, "position": [2, 3]}
+    ]
+  },
+  {
+    "name": "勇闯五关",
+    "heroes": [
+      {"type": 4, "position": [0, 1]},
+      {"type": 3, "position": [2, 0]},
+      {"type": 3, "position": [2, 2]},
+      {"type": 3, "position": [3, 0]},
+      {"type": 3, "position": [3, 2]},
+      {"type": 3, "position": [4, 1]},
+      {"type": 1, "position": [0, 0]},
+      {"type": 1, "position": [0, 3]},
+      {"type": 1, "position": [1, 0]},
+      {"type": 1, "position": [1, 3]}
+    ]
+  },
+  {
+    "name": "四面楚歌",
+    "heroes": [
+      {"type": 4, "position": [1, 1]},
+      {"type": 2, "position": [0, 0]},
+      {"type": 2, "position": [0, 3]},
+      {"type": 2, "position": [2, 3]},
+      {"type": 2, "position": [3, 0]},
+      {"type": 3, "position": [3, 1]},
+      {"type": 1, "position": [0, 1]},
+      {"type": 1, "position": [0, 2]},
+      {"type": 1, "position": [2, 0]},
+      {"type": 1, "position": [4, 3]}
+    ]
+  },
+  {
+    "name": "前呼后拥",
+    "heroes": [
+      {"type": 4, "position": [0, 2]},
+      {"type": 3, "position": [1, 0]},
+      {"type": 3, "position": [2, 0]},
+      {"type": 3, "position": [2, 2]},
+      {"type": 3, "position": [3, 0]},
+      {"type": 3, "position": [3, 2]},
+      {"type": 1, "position": [0, 0]},
+      {"type": 1, "position": [0, 1]},
+      {"type": 1, "position": [4, 2]},
+      {"type": 1, "position": [4, 3]}
+    ]
+  },
+  {
+    "name": "兵临曹营",
+    "heroes": [
+      {"type": 4, "position": [0, 1]},
+      {"type": 2, "position": [2, 0]},
+      {"type": 2, "position": [2, 3]},
+      {"type": 2, "position": [3, 1]},
+      {"type": 2, "position": [3, 2]},
+      {"type": 3, "position": [2, 1]},
+      {"type": 1, "position": [0, 0]},
+      {"type": 1, "position": [0, 3]},
+      {"type": 1, "position": [1, 0]},
+      {"type": 1, "position": [1, 3]}
+    ]
+  },
+  {
+    "name": "五将逼宫",
+    "heroes": [
+      {"type": 4, "position": [1, 1]},
+      {"type": 2, "position": [1, 0]},
+      {"type": 2, "position": [1, 3]},
+      {"type": 3, "position": [0, 0]},
+      {"type": 3, "position": [0, 2]},
+      {"type": 3, "position": [3, 1]},
+      {"type": 1, "position": [3, 0]},
+      {"type": 1, "position": [3, 3]},
+      {"type": 1, "position": [4, 0]},
+      {"type": 1, "position": [4, 3]}
+    ]
+  },
+  {
+    "name": "前挡后阻",
+    "heroes": [
+      {"type": 4, "position": [0, 0]},
+      {"type": 2, "position": [1, 2]},
+      {"type": 2, "position": [2, 0]},
+      {"type": 2, "position": [2, 1]},
+      {"type": 3, "position": [0, 2]},
+      {"type": 3, "position": [4, 1]},
+      {"type": 1, "position": [1, 3]},
+      {"type": 1, "position": [2, 3]},
+      {"type": 1, "position": [3, 2]},
+      {"type": 1, "position": [3, 3]}
+    ]
+  },
+  {
+    "name": "近在咫尺",
+    "heroes": [
+      {"type": 4, "position": [3, 2]},
+      {"type": 2, "position": [0, 1]},
+      {"type": 2, "position": [0, 2]},
+      {"type": 2, "position": [0, 3]},
+      {"type": 3, "position": [2, 0]},
+      {"type": 3, "position": [3, 0]},
+      {"type": 1, "position": [0, 0]},
+      {"type": 1, "position": [1, 0]},
+      {"type": 1, "position": [2, 2]},
+      {"type": 1, "position": [2, 3]}
+    ]
+  },
+  {
+    "name": "走投无路",
+    "heroes": [
+      {"type": 4, "position": [0, 1]},
+      {"type": 2, "position": [0, 0]},
+      {"type": 2, "position": [0, 3]},
+      {"type": 2, "position": [2, 0]},
+      {"type": 2, "position": [2, 1]},
+      {"type": 2, "position": [2, 3]},
+      {"type": 1, "position": [2, 2]},
+      {"type": 1, "position": [3, 2]},
+      {"type": 1, "position": [4, 0]},
+      {"type": 1, "position": [4, 3]}
+    ]
+  },
+  {
+    "name": "小燕出巢",
+    "heroes": [
+      {"type": 4, "position": [0, 1]},
+      {"type": 2, "position": [0, 0]},
+      {"type": 2, "position": [0, 3]},
+      {"type": 3, "position": [2, 0]},
+      {"type": 3, "position": [2, 2]},
+      {"type": 3, "position": [3, 1]},
+      {"type": 1, "position": [3, 0]},
+      {"type": 1, "position": [3, 3]},
+      {"type": 1, "position": [4, 0]},
+      {"type": 1, "position": [4, 3]}
+    ]
+  },
+  {
+    "name": "比翼横空",
+    "heroes": [
+      {"type": 4, "position": [0, 2]},
+      {"type": 2, "position": [3, 3]},
+      {"type": 3, "position": [0, 0]},
+      {"type": 3, "position": [1, 0]},
+      {"type": 3, "position": [2, 0]},
+      {"type": 3, "position": [2, 2]},
+      {"type": 1, "position": [3, 0]},
+      {"type": 1, "position": [3, 2]},
+      {"type": 1, "position": [4, 0]},
+      {"type": 1, "position": [4, 2]}
+    ]
+  },
+  {
+    "name": "夹道藏兵",
+    "heroes": [
+      {"type": 4, "position": [0, 0]},
+      {"type": 2, "position": [0, 3]},
+      {"type": 3, "position": [2, 0]},
+      {"type": 3, "position": [2, 2]},
+      {"type": 3, "position": [3, 0]},
+      {"type": 3, "position": [3, 2]},
+      {"type": 1, "position": [0, 2]},
+      {"type": 1, "position": [1, 2]},
+      {"type": 1, "position": [4, 0]},
+      {"type": 1, "position": [4, 3]}
+    ]
+  },
+  {
+    "name": "屯兵东路",
+    "heroes": [
+      {"type": 4, "position": [0, 0]},
+      {"type": 2, "position": [0, 2]},
+      {"type": 2, "position": [0, 3]},
+      {"type": 2, "position": [3, 0]},
+      {"type": 2, "position": [3, 1]},
+      {"type": 3, "position": [2, 0]},
+      {"type": 1, "position": [2, 2]},
+      {"type": 1, "position": [2, 3]},
+      {"type": 1, "position": [3, 2]},
+      {"type": 1, "position": [3, 3]}
+    ]
+  },
+  {
+    "name": "四将连关",
+    "heroes": [
+      {"type": 4, "position": [0, 0]},
+      {"type": 2, "position": [2, 0]},
+      {"type": 2, "position": [2, 1]},
+      {"type": 3, "position": [0, 2]},
+      {"type": 3, "position": [1, 2]},
+      {"type": 3, "position": [2, 2]},
+      {"type": 1, "position": [3, 2]},
+      {"type": 1, "position": [3, 3]},
+      {"type": 1, "position": [4, 0]},
+      {"type": 1, "position": [4, 3]}
+    ]
+  },
+  {
+    "name": "峰回路转",
+    "heroes": [
+      {"type": 4, "position": [1, 0]},
+      {"type": 2, "position": [0, 3]},
+      {"type": 2, "position": [1, 2]},
+      {"type": 2, "position": [2, 3]},
+      {"type": 3, "position": [3, 1]},
+      {"type": 3, "position": [4, 2]},
+      {"type": 1, "position": [0, 0]},
+      {"type": 1, "position": [0, 1]},
+      {"type": 1, "position": [0, 2]},
+      {"type": 1, "position": [4, 1]}
     ]
   }
 ]
