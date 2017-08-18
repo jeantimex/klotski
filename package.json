@@ -1,6 +1,6 @@
 {
   "name": "klotski",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "The JavaScript algorithm for solving klotski game.",
   "main": "src/klotski.js",
   "repository": "https://github.com/jeantimex/klotski.git",
@@ -16,10 +16,22 @@
   },
   "nyc": {
     "watermarks": {
-      "lines": [80, 95],
-      "functions": [80, 95],
-      "branches": [70, 95],
-      "statements": [80, 95]
+      "lines": [
+        80,
+        95
+      ],
+      "functions": [
+        80,
+        95
+      ],
+      "branches": [
+        70,
+        95
+      ],
+      "statements": [
+        80,
+        95
+      ]
     }
   },
   "devDependencies": {
