@@ -8,13 +8,23 @@
   "license": "MIT",
   "scripts": {
     "lint": "eslint src",
-    "test": "npm run lint && mocha",
+    "test": "npm run lint && nyc --reporter=html --reporter=text  mocha",
+    "coverage": "nyc report --reporter=text-lcov | coveralls",
     "build": "gulp",
     "release": "node ./release.js",
     "demo": "node src/demo.js"
   },
+  "nyc": {
+    "watermarks": {
+      "lines": [80, 95],
+      "functions": [80, 95],
+      "branches": [70, 95],
+      "statements": [80, 95]
+    }
+  },
   "devDependencies": {
     "chai": "^4.1.0",
+    "coveralls": "^2.13.1",
     "eslint": "^4.3.0",
     "eslint-plugin-prettier": "^2.1.2",
     "gulp": "^3.9.1",
@@ -22,6 +32,7 @@
     "gulp-rename": "^1.2.2",
     "gulp-uglify": "^3.0.0",
     "mocha": "^3.5.0",
+    "nyc": "^11.1.0",
     "prettier": "^1.5.3",
     "pump": "^1.0.2"
   },
