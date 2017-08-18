@@ -30,6 +30,10 @@ If you are not using any module loader system then the API will then be accessib
 
 The latest version is now also always available at https://unpkg.co/klotski/dist/klotski.min.js
 
+```html
+<script src="https://unpkg.co/klotski/dist/klotski.min.js"></script>
+```
+
 ## Usage
 
 **Default usage**
