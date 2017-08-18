@@ -14,6 +14,14 @@
     "release": "node ./release.js",
     "demo": "node src/demo.js"
   },
+  "nyc": {
+    "watermarks": {
+      "lines": [80, 95],
+      "functions": [80, 95],
+      "branches": [70, 95],
+      "statements": [80, 95]
+    }
+  },
   "devDependencies": {
     "chai": "^4.1.0",
     "coveralls": "^2.13.1",
