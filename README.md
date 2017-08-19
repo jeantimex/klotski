@@ -108,7 +108,7 @@ The average running time is calculated by solving each of the game 100 times.
 |:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|
 | 夹道藏兵 | 屯兵东路 | 四将连关 | 峰回路转 | 走投无路 |
 | 78 moves | 73 moves | 40 moves | 140 moves | no solution |
-| 34.9 ms | 67.6 ms | 6.6 ms | 141.3 ms | null |
+| 34.9 ms | 67.6 ms | 6.6 ms | 141.3 ms | - |
 
 ## Contribution
 
