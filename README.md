@@ -60,6 +60,12 @@ var heroes = [
 var result = klotski.solve(heroes);
 ```
 
+## Algorithm
+
+### Breadth-first search (BFS)
+
+### Zobrist hashing
+
 ## Benchmark
 
 The average running time is calculated by finding the minimum moves of each game 100 times.
