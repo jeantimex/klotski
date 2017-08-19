@@ -62,10 +62,10 @@ var result = klotski.solve(heroes);
 
 The average running time is calculated by solving each of the game 100 times.
 
-| ![1](docs/images/1.png) |
-|:-----------------------:|
-| 横刀立马 |
-| 81 moves, 65.7 ms |
+| ![1](docs/images/1.png) | ![2](docs/images/2.png) | ![3](docs/images/3.png) | ![4](docs/images/4.png) | ![5](docs/images/5.png) |
+|:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|
+| 横刀立马 | 指挥若定 | 将拥曹营 | 齐头并进 | 并分三路 |
+| 81 moves, 65.7 ms | 71 moves, 63.2 ms | 73 moves, 66.4 ms | 60 moves, 65.4 ms | 73 moves, 46.1 ms |
 
 | Game  | Min Steps | Avg. Time (ms) |
 | ----- | --------- | -------------- |
