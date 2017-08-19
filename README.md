@@ -60,7 +60,7 @@ var result = klotski.solve(heroes);
 
 ## Benchmark
 
-The average running time is calculated by solving each of the game 100 times.
+The average running time is calculated by finding the minimum moves of each game 100 times.
 
 | ![1](docs/images/1.png) | ![2](docs/images/2.png) | ![3](docs/images/3.png) | ![4](docs/images/4.png) | ![5](docs/images/5.png) |
 |:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|
