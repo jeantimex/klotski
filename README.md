@@ -63,7 +63,8 @@ var result = klotski.solve(heroes);
 The average running time is calculated by solving each of the game 100 times.
 
 | ![1](docs/images/1.png) |
-| ----------------------- |
+|:-----------------------:|
+| 横刀立马 |
 | 81 moves, 65.717 ms     |
 
 | Game  | Min Steps | Avg. Time (ms) |
