@@ -64,7 +64,11 @@ var result = klotski.solve(heroes);
 
 ### Breadth-first search (BFS)
 
+BFS is an algorithm for traversing or searching tree or graph data structures. It starts at the tree root and explores the neighbor nodes first, before moving to the next level neighbors.
+
 ### Zobrist hashing
+
+According to [Wikipedia](https://en.wikipedia.org/wiki/Zobrist_hashing), Zobrist hashing (also referred to as Zobrist keys or Zobrist signatures) is a hash function construction used in computer programs that play abstract board games, such as chess and Go, to implement transposition tables, a special kind of hash table that is indexed by a board position and used to avoid analyzing the same position more than once. Zobrist hashing is named for its inventor, Albert Lindsey Zobrist. It has also been applied as a method for recognizing substitutional alloy configurations in simulations of crystalline materials.
 
 ## Benchmark
 
