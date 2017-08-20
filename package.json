@@ -1,6 +1,6 @@
 {
   "name": "klotski",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "The JavaScript algorithm for solving klotski game.",
   "main": "src/klotski.js",
   "repository": "https://github.com/jeantimex/klotski.git",
