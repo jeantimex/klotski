@@ -64,11 +64,25 @@ var result = klotski.solve(heroes);
 
 ### Breadth-first search (BFS)
 
-BFS is an algorithm for traversing or searching tree or graph data structures. It starts at the tree root and explores the neighbor nodes first, before moving to the next level neighbors.
+BFS is an algorithm for traversing or searching tree or graph data structures. It starts at the tree root and explores the neighbor nodes first, before moving to the next level neighbors. Basically, we start from the initial game state, try to move every block and generate the new game states, scan each new game state and see if the 2x2 block is at the desired position, if not, we will continue to try. During the try, any duplicate state should be avoided. 
 
 ### Zobrist hashing
 
-According to [Wikipedia](https://en.wikipedia.org/wiki/Zobrist_hashing), Zobrist hashing (also referred to as Zobrist keys or Zobrist signatures) is a hash function construction used in computer programs that play abstract board games, such as chess and Go, to implement transposition tables, a special kind of hash table that is indexed by a board position and used to avoid analyzing the same position more than once. Zobrist hashing is named for its inventor, Albert Lindsey Zobrist. It has also been applied as a method for recognizing substitutional alloy configurations in simulations of crystalline materials.
+There are many different ways to represent the current state of the game. We can concatenate each block's position and type to form a string, or we can use the feature of JavaScript Number datatype to optimize the storage space, see this [article](http://simonsays-tw.com/web/Klotski/Klotski.html). The problem is it takes `O(n²)` time to compute the state, and it's really expensive, is there a better way?
+
+We can use Zobrist hashing, according to [Wikipedia](https://en.wikipedia.org/wiki/Zobrist_hashing), _"Zobrist hashing is a hash function construction used in computer programs that play abstract board games, such as chess and Go, to implement transposition tables, a special kind of hash table that is indexed by a board position and used to avoid analyzing the same position more than once."_ Based on the current game state, if a block's position is changed, it only takes `O(1)` time to compute the next state, this is a huge win, and it is the key to boost the performance of the algorithm. See the `getZobristHashUpdate()` function in [klotski.js](src/klotski.js).
+
+Another important factor to improve the algorithm is to avoid the mirror states. For example, the following two states are mirror states:
+
+<p align="center">
+  <img src="docs/images/32.png" />
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="docs/images/32.png" />
+</p>
+
+with Zobrist hashing, we can calculate the mirror state in `O(1)` time, see `getMirrorZobristHash()` function in [klotski.js](src/klotski.js).
+
+At last, in order to use Zobrist hashing, we have to initialize the hashing table. Basically we need to generate a random number for each possible state inside a single cell of the board. A normal Klotski game has 20 cells (5 rows x 4 columns), and each cell can be empty or occupied by 5 different types of blocks. In [klotski.js](src/klotski.js), we use a three-dimensional array to store the initial random numbers, see `initZobristHash()` function for more details.
 
 ## Benchmark
 
