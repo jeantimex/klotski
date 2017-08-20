@@ -77,7 +77,7 @@ Another important factor to improve the algorithm is to avoid the mirror states.
 <p align="center">
   <img src="docs/images/32.png" />
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="docs/images/32.png" />
+  <img src="docs/images/32-mirror.png" />
 </p>
 
 with Zobrist hashing, we can calculate the mirror state in `O(1)` time, see `getMirrorZobristHash()` function in [klotski.js](src/klotski.js).
