@@ -69,6 +69,7 @@ BFS is an algorithm for traversing or searching tree or graph data structures. I
 <p align="center">
   <img src="docs/images/bfs.png" />
 </p>
+<p align="center">Breadth-first search in Klotski</p>
 
 ### Zobrist hashing
 
