@@ -1,6 +1,6 @@
 # klotski
 
-The JavaScript algorithm for solving klotski game.
+A fast JavaScript engine for solving klotski games.
 
 [![npm version](https://badge.fury.io/js/klotski.svg)](https://badge.fury.io/js/klotski)
 [![Build Status](https://travis-ci.org/jeantimex/klotski.svg?branch=master)](https://travis-ci.org/jeantimex/klotski)
