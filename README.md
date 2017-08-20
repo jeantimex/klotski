@@ -66,6 +66,10 @@ var result = klotski.solve(heroes);
 
 BFS is an algorithm for traversing or searching tree or graph data structures. It starts at the tree root and explores the neighbor nodes first, before moving to the next level neighbors. Basically, we start from the initial game state, try to move every block and generate the new game states, scan each new game state and see if the 2x2 block is at the desired position, if not, we will continue to try. During the try, any duplicate state should be avoided. 
 
+<p align="center">
+  <img src="docs/images/bfs.png" />
+</p>
+
 ### Zobrist hashing
 
 There are many different ways to represent the current state of the game. We can concatenate each block's position and type to form a string, or we can use the feature of JavaScript Number datatype to optimize the storage space, see this [article](http://simonsays-tw.com/web/Klotski/Klotski.html). The problem is it takes `O(n²)` time to compute the state, and it's really expensive, is there a better way?
