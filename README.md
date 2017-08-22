@@ -45,15 +45,15 @@ var Klotski = require('klotski');
 
 var klotski = new Klotski();
 var blocks = [
-  { "type": 2, "position": [0, 0] },
   { "type": 4, "position": [0, 1] },
+  { "type": 2, "position": [0, 0] },
   { "type": 2, "position": [0, 3] },
   { "type": 2, "position": [2, 0] },
-  { "type": 3, "position": [2, 1] },
   { "type": 2, "position": [2, 3] },
-  { "type": 1, "position": [4, 0] },
+  { "type": 3, "position": [2, 1] },
   { "type": 1, "position": [3, 1] },
   { "type": 1, "position": [3, 2] },
+  { "type": 1, "position": [4, 0] },
   { "type": 1, "position": [4, 3] }
 ];
 
