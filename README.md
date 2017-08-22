@@ -44,7 +44,7 @@ The latest version is now also always available at https://unpkg.org/pkg/klotski
 var Klotski = require('klotski');
 
 var klotski = new Klotski();
-var heroes = [
+var blocks = [
   { "type": 2, "position": [0, 0] },
   { "type": 4, "position": [0, 1] },
   { "type": 2, "position": [0, 3] },
@@ -57,7 +57,18 @@ var heroes = [
   { "type": 1, "position": [4, 3] }
 ];
 
-var result = klotski.solve(heroes);
+var result = klotski.solve(blocks);
+```
+
+The input `blocks` can also be an array of integers that represent a series of `(type, x, y)` tuple, for example, the above code can be written as:
+
+```javascript
+var Klotski = require('klotski');
+
+var klotski = new Klotski();
+var blocks = [4, 0, 1, 2, 0, 0, 2, 0, 3, 2, 2, 0, 2, 2, 3, 3, 2, 1, 1, 3, 1, 1, 3, 2, 1, 4, 0, 1, 4, 3];
+
+var result = klotski.solve(blocks);
 ```
 
 ## Algorithm
