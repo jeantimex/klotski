@@ -380,19 +380,41 @@
       state.move.heroIdx = 0;
       state.move.dirIdx = 0;
 
-      for (var i = 0; i < heroes.length; i++) {
-        var hero = {
-          type: heroes[i].type,
-          row: heroes[i].position[0],
-          col: heroes[i].position[1],
-        };
+      if (!heroes || heroes.length === 0) {
+        return null;
+      }
 
-        if (heroes[i].type === 4) {
-          game.caoIdx = i;
+      if (typeof heroes[0] === 'object') {
+        for (var i = 0; i < heroes.length; i++) {
+          var hero = {
+            type: heroes[i].type,
+            row: heroes[i].position[0],
+            col: heroes[i].position[1],
+          };
+
+          if (heroes[i].type === 4) {
+            game.caoIdx = i;
+          }
+
+          if (!addGameStateHero(state, i, hero)) {
+            return null;
+          }
         }
+      } else if (typeof heroes[0] === 'number') {
+        for (var i = 0; i < heroes.length; i += 3) {
+          var hero = {
+            type: heroes[i],
+            row: heroes[i + 1],
+            col: heroes[i + 2],
+          };
 
-        if (!addGameStateHero(state, i, hero)) {
-          return null;
+          if (heroes[i] === 4) {
+            game.caoIdx = i / 3;
+          }
+
+          if (!addGameStateHero(state, i / 3, hero)) {
+            return null;
+          }
         }
       }
 
