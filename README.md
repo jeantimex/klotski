@@ -1,4 +1,4 @@
-# klotski
+# klotski (华容道)
 
 A fast JavaScript engine for solving klotski games.
 
