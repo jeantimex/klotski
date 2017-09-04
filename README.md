@@ -5,6 +5,8 @@ A fast JavaScript engine for solving klotski games.
 [![npm version](https://badge.fury.io/js/klotski.svg)](https://badge.fury.io/js/klotski)
 [![Build Status](https://travis-ci.org/jeantimex/klotski.svg?branch=master)](https://travis-ci.org/jeantimex/klotski)
 [![Coverage Status](https://coveralls.io/repos/github/jeantimex/klotski/badge.svg?branch=master)](https://coveralls.io/github/jeantimex/klotski?branch=master)
+[![dependencies Status](https://david-dm.org/jeantimex/klotski/status.svg)](https://david-dm.org/jeantimex/klotski)
+[![devDependencies Status](https://david-dm.org/jeantimex/klotski/dev-status.svg)](https://david-dm.org/jeantimex/klotski?type=dev)
 
 ![cover](docs/images/cover-min.png)
 
