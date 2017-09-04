@@ -35,20 +35,20 @@
     }
   },
   "devDependencies": {
-    "chai": "^4.1.0",
+    "chai": "^4.1.2",
     "coveralls": "^2.13.1",
-    "eslint": "^4.3.0",
-    "eslint-plugin-prettier": "^2.1.2",
+    "eslint": "^4.6.1",
+    "eslint-plugin-prettier": "^2.2.0",
     "gulp": "^3.9.1",
     "gulp-banner": "^0.1.3",
     "gulp-rename": "^1.2.2",
     "gulp-uglify": "^3.0.0",
     "mocha": "^3.5.0",
     "nyc": "^11.1.0",
-    "prettier": "^1.5.3",
+    "prettier": "^1.6.1",
     "pump": "^1.0.2"
   },
   "dependencies": {
-    "inquirer": "^3.2.2"
+    "inquirer": "^3.2.3"
   }
 }
