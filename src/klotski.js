@@ -8,7 +8,7 @@
 
   var NO_LR_MIRROR_ALLOW = true;
 
-  var MAX_HERO_COUNT = 10;
+  var MAX_BLOCK_COUNT = 10;
   var MAX_MOVE_DIRECTION = 4;
   var MAX_WARRIOR_TYPE = 5;
 
@@ -43,20 +43,20 @@
         newBoard[i] = gameState.board[i].slice(0);
       }
 
-      var newHeroes = [];
-      for (i = 0; i < gameState.heroes.length; i++) {
-        newHeroes[i] = {
-          type: gameState.heroes[i].type,
-          row: gameState.heroes[i].row,
-          col: gameState.heroes[i].col,
+      var newBlocks = [];
+      for (i = 0; i < gameState.blocks.length; i++) {
+        newBlocks[i] = {
+          type: gameState.blocks[i].type,
+          row: gameState.blocks[i].row,
+          col: gameState.blocks[i].col,
         };
       }
 
       var newState = {
         board: newBoard,
-        heroes: newHeroes,
+        blocks: newBlocks,
         move: {
-          heroIdx: gameState.move.heroIdx,
+          blockIdx: gameState.move.blockIdx,
           dirIdx: gameState.move.dirIdx,
         },
         step: gameState.step,
@@ -71,12 +71,12 @@
     function getZobristHash(gameState) {
       var i, j;
       var hash = 0;
-      var heroes = gameState.heroes;
+      var blocks = gameState.blocks;
 
       for (i = 1; i <= HRD_GAME_ROW; i++) {
         for (j = 1; j <= HRD_GAME_COL; j++) {
           var index = gameState.board[i][j] - 1;
-          var type = index >= 0 && index < heroes.length ? heroes[index].type : 0;
+          var type = index >= 0 && index < blocks.length ? blocks[index].type : 0;
           hash ^= zob_hash.key[i - 1][j - 1].value[type];
         }
       }
@@ -87,12 +87,12 @@
     function getMirrorZobristHash(gameState) {
       var i, j;
       var hash = 0;
-      var heroes = gameState.heroes;
+      var blocks = gameState.blocks;
 
       for (i = 1; i <= HRD_GAME_ROW; i++) {
         for (j = 1; j <= HRD_GAME_COL; j++) {
           var index = gameState.board[i][j] - 1;
-          var type = index >= 0 && index < heroes.length ? heroes[index].type : 0;
+          var type = index >= 0 && index < blocks.length ? blocks[index].type : 0;
           hash ^= zob_hash.key[i - 1][HRD_GAME_COL - j].value[type];
         }
       }
@@ -100,18 +100,18 @@
       return hash;
     }
 
-    function getZobristHashUpdate(gameState, heroIdx, dirIdx, isMirror) {
+    function getZobristHashUpdate(gameState, blockIdx, dirIdx, isMirror) {
       var hash = isMirror ? gameState.hashMirror : gameState.hash;
-      var hero = gameState.heroes[heroIdx];
-      var row = hero.row;
-      var type = hero.type;
-      var col = isMirror ? HRD_GAME_COL - 1 - hero.col : hero.col;
+      var block = gameState.blocks[blockIdx];
+      var row = block.row;
+      var type = block.type;
+      var col = isMirror ? HRD_GAME_COL - 1 - block.col : block.col;
       var dx = isMirror ? -1 : 1;
       var dir = directions[isMirror && dirIdx % 2 === 1 ? (dirIdx + 2) % 4 : dirIdx];
       var x = dir.x;
       var y = dir.y;
 
-      switch (hero.type) {
+      switch (block.type) {
         case HT_BLOCK:
           // Clear the old position
           hash ^= zob_hash.key[row][col].value[type];
@@ -231,36 +231,38 @@
       return isOK;
     }
 
-    function canHeroMove(state, heroIdx, dirIdx) {
+    function canBlockMove(state, blockIdx, dirIdx) {
       var cv1, cv2, cv3, cv4;
       var canMove = false;
-      var hero = state.heroes[heroIdx];
+      var block = state.blocks[blockIdx];
       var dir = directions[dirIdx];
 
-      switch (hero.type) {
+      switch (block.type) {
         case HT_BLOCK:
-          canMove = state.board[hero.row + dir.y + 1][hero.col + dir.x + 1] == BOARD_CELL_EMPTY;
+          canMove = state.board[block.row + dir.y + 1][block.col + dir.x + 1] == BOARD_CELL_EMPTY;
           break;
         case HT_VBAR:
-          cv1 = state.board[hero.row + dir.y + 1][hero.col + dir.x + 1];
-          cv2 = state.board[hero.row + dir.y + 2][hero.col + dir.x + 1];
-          canMove = (cv1 == BOARD_CELL_EMPTY || cv1 == heroIdx + 1) && (cv2 == BOARD_CELL_EMPTY || cv2 == heroIdx + 1);
+          cv1 = state.board[block.row + dir.y + 1][block.col + dir.x + 1];
+          cv2 = state.board[block.row + dir.y + 2][block.col + dir.x + 1];
+          canMove =
+            (cv1 == BOARD_CELL_EMPTY || cv1 == blockIdx + 1) && (cv2 == BOARD_CELL_EMPTY || cv2 == blockIdx + 1);
           break;
         case HT_HBAR:
-          cv1 = state.board[hero.row + dir.y + 1][hero.col + dir.x + 1];
-          cv2 = state.board[hero.row + dir.y + 1][hero.col + dir.x + 2];
-          canMove = (cv1 == BOARD_CELL_EMPTY || cv1 == heroIdx + 1) && (cv2 == BOARD_CELL_EMPTY || cv2 == heroIdx + 1);
+          cv1 = state.board[block.row + dir.y + 1][block.col + dir.x + 1];
+          cv2 = state.board[block.row + dir.y + 1][block.col + dir.x + 2];
+          canMove =
+            (cv1 == BOARD_CELL_EMPTY || cv1 == blockIdx + 1) && (cv2 == BOARD_CELL_EMPTY || cv2 == blockIdx + 1);
           break;
         case HT_BOX:
-          cv1 = state.board[hero.row + dir.y + 1][hero.col + dir.x + 1];
-          cv2 = state.board[hero.row + dir.y + 2][hero.col + dir.x + 1];
-          cv3 = state.board[hero.row + dir.y + 1][hero.col + dir.x + 2];
-          cv4 = state.board[hero.row + dir.y + 2][hero.col + dir.x + 2];
+          cv1 = state.board[block.row + dir.y + 1][block.col + dir.x + 1];
+          cv2 = state.board[block.row + dir.y + 2][block.col + dir.x + 1];
+          cv3 = state.board[block.row + dir.y + 1][block.col + dir.x + 2];
+          cv4 = state.board[block.row + dir.y + 2][block.col + dir.x + 2];
           canMove =
-            (cv1 == BOARD_CELL_EMPTY || cv1 == heroIdx + 1) &&
-            (cv2 == BOARD_CELL_EMPTY || cv2 == heroIdx + 1) &&
-            (cv3 == BOARD_CELL_EMPTY || cv3 == heroIdx + 1) &&
-            (cv4 == BOARD_CELL_EMPTY || cv4 == heroIdx + 1);
+            (cv1 == BOARD_CELL_EMPTY || cv1 == blockIdx + 1) &&
+            (cv2 == BOARD_CELL_EMPTY || cv2 == blockIdx + 1) &&
+            (cv3 == BOARD_CELL_EMPTY || cv3 == blockIdx + 1) &&
+            (cv4 == BOARD_CELL_EMPTY || cv4 == blockIdx + 1);
           break;
         default:
           canMove = false;
@@ -294,34 +296,34 @@
       }
     }
 
-    function takePosition(state, heroIdx, type, row, col) {
+    function takePosition(state, blockIdx, type, row, col) {
       switch (type) {
         case HT_BLOCK:
-          state.board[row + 1][col + 1] = heroIdx + 1;
+          state.board[row + 1][col + 1] = blockIdx + 1;
           break;
         case HT_VBAR:
-          state.board[row + 1][col + 1] = heroIdx + 1;
-          state.board[row + 2][col + 1] = heroIdx + 1;
+          state.board[row + 1][col + 1] = blockIdx + 1;
+          state.board[row + 2][col + 1] = blockIdx + 1;
           break;
         case HT_HBAR:
-          state.board[row + 1][col + 1] = heroIdx + 1;
-          state.board[row + 1][col + 2] = heroIdx + 1;
+          state.board[row + 1][col + 1] = blockIdx + 1;
+          state.board[row + 1][col + 2] = blockIdx + 1;
           break;
         case HT_BOX:
-          state.board[row + 1][col + 1] = heroIdx + 1;
-          state.board[row + 1][col + 2] = heroIdx + 1;
-          state.board[row + 2][col + 1] = heroIdx + 1;
-          state.board[row + 2][col + 2] = heroIdx + 1;
+          state.board[row + 1][col + 1] = blockIdx + 1;
+          state.board[row + 1][col + 2] = blockIdx + 1;
+          state.board[row + 2][col + 1] = blockIdx + 1;
+          state.board[row + 2][col + 2] = blockIdx + 1;
           break;
         default:
           break;
       }
     }
 
-    function addGameStateHero(state, heroIdx, hero) {
-      if (isPositionAvailable(state, hero.type, hero.row, hero.col)) {
-        takePosition(state, heroIdx, hero.type, hero.row, hero.col);
-        state.heroes.push(hero);
+    function addGameStateBlock(state, blockIdx, block) {
+      if (isPositionAvailable(state, block.type, block.row, block.col)) {
+        takePosition(state, blockIdx, block.type, block.row, block.col);
+        state.blocks.push(block);
         return true;
       }
       return false;
@@ -348,7 +350,7 @@
       }
     }
 
-    function createGame(heroes) {
+    function createGame(blocks) {
       var game = {
         caoIdx: 0,
         states: [],
@@ -361,9 +363,9 @@
 
       var state = {
         board: [],
-        heroes: [],
+        blocks: [],
         move: {
-          heroIdx: 0,
+          blockIdx: 0,
           dirIdx: 0,
         },
         step: 0,
@@ -377,45 +379,47 @@
 
       state.parent = null;
       state.step = 0;
-      state.move.heroIdx = 0;
+      state.move.blockIdx = 0;
       state.move.dirIdx = 0;
 
-      if (!heroes || heroes.length === 0) {
+      if (!blocks || blocks.length === 0) {
         return null;
       }
 
-      if (typeof heroes[0] === 'object') {
-        for (var i = 0; i < heroes.length; i++) {
-          var hero = {
-            type: heroes[i].type,
-            row: heroes[i].position[0],
-            col: heroes[i].position[1],
+      if (typeof blocks[0] === 'object') {
+        for (var i = 0; i < blocks.length; i++) {
+          var block = {
+            type: blocks[i].type,
+            row: blocks[i].position[0],
+            col: blocks[i].position[1],
           };
 
-          if (heroes[i].type === 4) {
+          if (blocks[i].type === 4) {
             game.caoIdx = i;
           }
 
-          if (!addGameStateHero(state, i, hero)) {
+          if (!addGameStateBlock(state, i, block)) {
             return null;
           }
         }
-      } else if (typeof heroes[0] === 'number') {
-        for (var i = 0; i < heroes.length; i += 3) {
-          var hero = {
-            type: heroes[i],
-            row: heroes[i + 1],
-            col: heroes[i + 2],
+      } else if (typeof blocks[0] === 'number') {
+        for (var i = 0; i < blocks.length; i += 3) {
+          var block = {
+            type: blocks[i],
+            row: blocks[i + 1],
+            col: blocks[i + 2],
           };
 
-          if (heroes[i] === 4) {
+          if (blocks[i] === 4) {
             game.caoIdx = i / 3;
           }
 
-          if (!addGameStateHero(state, i / 3, hero)) {
+          if (!addGameStateBlock(state, i / 3, block)) {
             return null;
           }
         }
+      } else {
+        return null;
       }
 
       state.hash = getZobristHash(state);
@@ -442,7 +446,7 @@
         if (state.step > 0) {
           var move = {
             step: state.step,
-            heroIdx: state.move.heroIdx,
+            blockIdx: state.move.blockIdx,
             dirIdx: state.move.dirIdx,
           };
           game.result.moves.push(move);
@@ -452,8 +456,8 @@
     }
 
     function isEscaped(game, gameState) {
-      var hero = gameState.heroes[game.caoIdx];
-      return hero.row === CAO_ESCAPE_ROW && hero.col === CAO_ESCAPE_COL;
+      var block = gameState.blocks[game.caoIdx];
+      return block.row === CAO_ESCAPE_ROW && block.col === CAO_ESCAPE_COL;
     }
 
     function resolveGame(game) {
@@ -476,54 +480,54 @@
     }
 
     function searchNewGameStates(game, gameState) {
-      for (var i = 0; i < gameState.heroes.length; i++) {
+      for (var i = 0; i < gameState.blocks.length; i++) {
         for (var j = 0; j < MAX_MOVE_DIRECTION; j++) {
-          trySearchHeroNewState(game, gameState, i, j);
+          trySearchBlockNewState(game, gameState, i, j);
         }
       }
     }
 
-    function trySearchHeroNewState(game, gameState, heroIdx, dirIdx) {
-      var newState = moveHeroToNewState(game, gameState, heroIdx, dirIdx);
+    function trySearchBlockNewState(game, gameState, blockIdx, dirIdx) {
+      var newState = moveBlockToNewState(game, gameState, blockIdx, dirIdx);
 
       if (newState) {
         if (addNewStatePattern(game, newState)) {
-          tryHeroContinueMove(game, newState, heroIdx, dirIdx);
+          tryBlockContinueMove(game, newState, blockIdx, dirIdx);
           return;
         }
       }
     }
 
-    function moveHeroToNewState(game, gameState, heroIdx, dirIdx) {
-      if (canHeroMove(gameState, heroIdx, dirIdx)) {
-        var hash = getZobristHashUpdate(gameState, heroIdx, dirIdx);
+    function moveBlockToNewState(game, gameState, blockIdx, dirIdx) {
+      if (canBlockMove(gameState, blockIdx, dirIdx)) {
+        var hash = getZobristHashUpdate(gameState, blockIdx, dirIdx);
         if (game.zhash[hash]) {
           return null;
         }
 
         var hashMirror = 0;
         if (NO_LR_MIRROR_ALLOW) {
-          hashMirror = getZobristHashUpdate(gameState, heroIdx, dirIdx, true);
+          hashMirror = getZobristHashUpdate(gameState, blockIdx, dirIdx, true);
           if (game.zhash[hashMirror]) {
             return null;
           }
         }
 
         var newState = copyGameState(gameState);
-        var hero = newState.heroes[heroIdx];
+        var block = newState.blocks[blockIdx];
         var dir = directions[dirIdx];
 
-        clearPosition(newState, hero.type, hero.row, hero.col);
-        takePosition(newState, heroIdx, hero.type, hero.row + dir.y, hero.col + dir.x);
+        clearPosition(newState, block.type, block.row, block.col);
+        takePosition(newState, blockIdx, block.type, block.row + dir.y, block.col + dir.x);
 
-        hero.row = hero.row + dir.y;
-        hero.col = hero.col + dir.x;
+        block.row = block.row + dir.y;
+        block.col = block.col + dir.x;
 
-        newState.heroes[heroIdx] = hero;
+        newState.blocks[blockIdx] = block;
 
         newState.step = gameState.step + 1;
         newState.parent = gameState;
-        newState.move.heroIdx = heroIdx;
+        newState.move.blockIdx = blockIdx;
         newState.move.dirIdx = dirIdx;
 
         newState.hash = hash;
@@ -568,13 +572,13 @@
      * 
      * @param {Object} game
      * @param {Object} gameState
-     * @param {Number} heroIdx
+     * @param {Number} blockIdx
      * @param {Number} lastDirIdx
      */
-    function tryHeroContinueMove(game, gameState, heroIdx, lastDirIdx) {
+    function tryBlockContinueMove(game, gameState, blockIdx, lastDirIdx) {
       for (var d = 0; d < MAX_MOVE_DIRECTION; d++) {
         if (!isReverseDirection(d, lastDirIdx)) {
-          var newState = moveHeroToNewState(game, gameState, heroIdx, d);
+          var newState = moveBlockToNewState(game, gameState, blockIdx, d);
           if (newState) {
             if (addNewStatePattern(game, newState)) {
               newState.step--;
@@ -587,11 +591,11 @@
     /**
      * Solve a klotski game
      * 
-     * @param {Array} heroes - Starting positions
+     * @param {Array} blocks - Starting positions
      * @param {Object} options - Game configuration 
      */
-    this.solve = function(heroes, options) {
-      var game = createGame(heroes);
+    this.solve = function(blocks, options) {
+      var game = createGame(blocks);
 
       if (game) {
         if (resolveGame(game)) {
