@@ -594,7 +594,7 @@
      * @param {Object} options - Game configuration 
      */
     this.solve = function(blocks, options) {
-      if (options.hasOwnProperty('useMirror') && typeof options.useMirror === 'boolean') {
+      if (options && options.hasOwnProperty('useMirror') && typeof options.useMirror === 'boolean') {
         NO_LR_MIRROR_ALLOW = options.useMirror;
       }
 

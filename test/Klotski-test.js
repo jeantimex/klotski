@@ -15,6 +15,14 @@ describe('Klotski', function() {
     assert.equal(result.length, 118);
   });
 
+  it('should solve the problem with options', function() {
+    var result = klotski.solve(games[0].blocks, {
+      useMirror: false,
+    });
+    assert.equal(result[0].step, 81);
+    assert.equal(result.length, 118);
+  });
+
   it('should return null when block type is unkonwn', function() {
     var blocks = [
       {
