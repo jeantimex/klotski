@@ -8,14 +8,13 @@
 
   var NO_LR_MIRROR_ALLOW = true;
 
-  var MAX_BLOCK_COUNT = 10;
   var MAX_MOVE_DIRECTION = 4;
   var MAX_WARRIOR_TYPE = 5;
 
   var HRD_GAME_ROW = 5;
   var HRD_GAME_COL = 4;
-  var HRD_BOARD_WIDTH = 6;
-  var HRD_BOARD_HEIGHT = 7;
+  var HRD_BOARD_WIDTH = HRD_GAME_COL + 2;
+  var HRD_BOARD_HEIGHT = HRD_GAME_ROW + 2;
 
   var CAO_ESCAPE_ROW = 3;
   var CAO_ESCAPE_COL = 1;
@@ -595,6 +594,10 @@
      * @param {Object} options - Game configuration 
      */
     this.solve = function(blocks, options) {
+      if (options && options.hasOwnProperty('useMirror') && typeof options.useMirror === 'boolean') {
+        NO_LR_MIRROR_ALLOW = options.useMirror;
+      }
+
       var game = createGame(blocks);
 
       if (game) {
