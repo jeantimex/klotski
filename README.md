@@ -7,6 +7,7 @@ A fast JavaScript engine for solving klotski games.
 [![Coverage Status](https://coveralls.io/repos/github/jeantimex/klotski/badge.svg?branch=master)](https://coveralls.io/github/jeantimex/klotski?branch=master)
 [![dependencies Status](https://david-dm.org/jeantimex/klotski/status.svg)](https://david-dm.org/jeantimex/klotski)
 [![devDependencies Status](https://david-dm.org/jeantimex/klotski/dev-status.svg)](https://david-dm.org/jeantimex/klotski?type=dev)
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=BFXQGY77CV3T2)
 
 ![cover](docs/images/cover-min.png)
 
