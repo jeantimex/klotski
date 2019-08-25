@@ -49,16 +49,16 @@ var Klotski = require('klotski');
 var klotski = new Klotski();
 var game = {
   blocks: [
-    { "shape": [2, 2], "position": [0, 1]},
-    { "shape": [2, 1], "position": [0, 0]},
-    { "shape": [2, 1], "position": [0, 3]},
-    { "shape": [2, 1], "position": [2, 0]},
-    { "shape": [2, 1], "position": [2, 3]},
-    { "shape": [1, 2], "position": [2, 1]},
-    { "shape": [1, 1], "position": [3, 1]},
-    { "shape": [1, 1], "position": [3, 2]},
-    { "shape": [1, 1], "position": [4, 0]},
-    { "shape": [1, 1], "position": [4, 3]},
+    { "shape": [2, 2], "position": [0, 1] },
+    { "shape": [2, 1], "position": [0, 0] },
+    { "shape": [2, 1], "position": [0, 3] },
+    { "shape": [2, 1], "position": [2, 0] },
+    { "shape": [2, 1], "position": [2, 3] },
+    { "shape": [1, 2], "position": [2, 1] },
+    { "shape": [1, 1], "position": [3, 1] },
+    { "shape": [1, 1], "position": [3, 2] },
+    { "shape": [1, 1], "position": [4, 0] },
+    { "shape": [1, 1], "position": [4, 3] },
   ],
   boardSize: [6, 6],
   escapePoint: [2, 4],
@@ -75,6 +75,14 @@ The `shape` property defines the shape of the block, for example, `[1, 2]` means
 `boardSize: [rows, columns]` is the size of the game board.
 
 `escapePoint: [x, y]` is the destination point for block 0 to escape.
+
+Each block's movement can also be restricted, for example `{ "shape": [2, 1], "position": [0, 0], directions: [0, 2] }`, this will only allow the block to move up and down. The directions code is as follows:
+```
+down: 0
+right: 1
+up: 2
+left: 3
+```
 
 ## Algorithm
 
