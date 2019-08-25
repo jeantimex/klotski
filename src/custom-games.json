@@ -1,0 +1,17 @@
+[
+  {
+    "name": "Custom #1",
+    "blocks": [
+      { "shape": [1, 2], "position": [2, 1]},
+      { "shape": [3, 1], "position": [0, 0]},
+      { "shape": [1, 2], "position": [0, 1]},
+      { "shape": [3, 1], "position": [0, 3]},
+      { "shape": [2, 1], "position": [3, 2]},
+      { "shape": [1, 3], "position": [3, 3]},
+      { "shape": [1, 3], "position": [5, 2]},
+      { "shape": [2, 1], "position": [4, 5]}
+    ],
+    "boardSize": [6, 6],
+    "escapePoint": [2, 4]
+  }
+]

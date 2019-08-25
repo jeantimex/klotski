@@ -1,9 +1,8 @@
 var Klotski = require('./klotski');
-var games = require('./games.json');
+var hrdGames = require('./hrd-games.json');
+var customGames = require('./custom-games.json');
 
 var klotski = new Klotski();
-var result = klotski.solve(games[0].blocks, {
-  useMirror: true,
-});
+var result = klotski.solve(customGames[0]);
 
 console.log(result);

@@ -1,23 +1,17 @@
 (function() {
   'use strict';
 
-  var HT_BLOCK = 1;
-  var HT_VBAR = 2;
-  var HT_HBAR = 3;
-  var HT_BOX = 4;
-
   var NO_LR_MIRROR_ALLOW = true;
 
   var MAX_MOVE_DIRECTION = 4;
-  var MAX_WARRIOR_TYPE = 5;
 
   var HRD_GAME_ROW = 5;
   var HRD_GAME_COL = 4;
   var HRD_BOARD_WIDTH = HRD_GAME_COL + 2;
   var HRD_BOARD_HEIGHT = HRD_GAME_ROW + 2;
 
-  var CAO_ESCAPE_ROW = 3;
-  var CAO_ESCAPE_COL = 1;
+  var ESCAPE_ROW = 3;
+  var ESCAPE_COL = 1;
 
   var BOARD_CELL_EMPTY = 0;
   var BOARD_CELL_BORDER = -1;
@@ -31,29 +25,47 @@
     var zob_hash;
     var level = 0;
 
+    function getType(types, shape) {
+      return types[shape[0] + '-' + shape[1]];
+    }
+
+    function setTypes(types, shape) {
+      var key = shape[0] + '-' + shape[1];
+      if (!types[key]) {
+        types[key] = Object.keys(types).length + 1;
+      }
+    }
+
     function isReverseDirection(dirIdx1, dirIdx2) {
       return (dirIdx1 + 2) % MAX_MOVE_DIRECTION === dirIdx2;
     }
 
     function copyGameState(gameState) {
-      var i, j;
       var newBoard = [];
-      for (i = 0; i < HRD_BOARD_HEIGHT; i++) {
+      for (var i = 0; i < HRD_BOARD_HEIGHT; i++) {
         newBoard[i] = gameState.board[i].slice(0);
       }
 
       var newBlocks = [];
-      for (i = 0; i < gameState.blocks.length; i++) {
+      for (var i = 0; i < gameState.blocks.length; i++) {
         newBlocks[i] = {
-          type: gameState.blocks[i].type,
+          shape: gameState.blocks[i].shape.slice(0),
           row: gameState.blocks[i].row,
           col: gameState.blocks[i].col,
         };
       }
 
+      var newTypes = {};
+      for (var key in gameState.types) {
+        if (gameState.types.hasOwnProperty(key)) {
+          newTypes[key] = gameState.types[key];
+        }
+      }
+
       var newState = {
         board: newBoard,
         blocks: newBlocks,
+        types: newTypes,
         move: {
           blockIdx: gameState.move.blockIdx,
           dirIdx: gameState.move.dirIdx,
@@ -75,7 +87,7 @@
       for (i = 1; i <= HRD_GAME_ROW; i++) {
         for (j = 1; j <= HRD_GAME_COL; j++) {
           var index = gameState.board[i][j] - 1;
-          var type = index >= 0 && index < blocks.length ? blocks[index].type : 0;
+          var type = index >= 0 && index < blocks.length ? getType(gameState.types, blocks[index].shape) : 0;
           hash ^= zob_hash.key[i - 1][j - 1].value[type];
         }
       }
@@ -91,7 +103,7 @@
       for (i = 1; i <= HRD_GAME_ROW; i++) {
         for (j = 1; j <= HRD_GAME_COL; j++) {
           var index = gameState.board[i][j] - 1;
-          var type = index >= 0 && index < blocks.length ? blocks[index].type : 0;
+          var type = index >= 0 && index < blocks.length ? getType(gameState.types, blocks[index].shape) : 0;
           hash ^= zob_hash.key[i - 1][HRD_GAME_COL - j].value[type];
         }
       }
@@ -102,73 +114,35 @@
     function getZobristHashUpdate(gameState, blockIdx, dirIdx, isMirror) {
       var hash = isMirror ? gameState.hashMirror : gameState.hash;
       var block = gameState.blocks[blockIdx];
+      var shape = block.shape;
       var row = block.row;
-      var type = block.type;
+      var type = getType(gameState.types, shape);
       var col = isMirror ? HRD_GAME_COL - 1 - block.col : block.col;
       var dx = isMirror ? -1 : 1;
       var dir = directions[isMirror && dirIdx % 2 === 1 ? (dirIdx + 2) % 4 : dirIdx];
       var x = dir.x;
       var y = dir.y;
 
-      switch (block.type) {
-        case HT_BLOCK:
-          // Clear the old position
-          hash ^= zob_hash.key[row][col].value[type];
-          hash ^= zob_hash.key[row][col].value[0];
-          // Take the new position
-          hash ^= zob_hash.key[row + y][col + x].value[0];
-          hash ^= zob_hash.key[row + y][col + x].value[type];
-          break;
-        case HT_VBAR:
-          // Clear the old position
-          hash ^= zob_hash.key[row][col].value[type];
-          hash ^= zob_hash.key[row + 1][col].value[type];
-          hash ^= zob_hash.key[row][col].value[0];
-          hash ^= zob_hash.key[row + 1][col].value[0];
-          // Take the new position
-          hash ^= zob_hash.key[row + y][col + x].value[0];
-          hash ^= zob_hash.key[row + y + 1][col + x].value[0];
-          hash ^= zob_hash.key[row + y][col + x].value[type];
-          hash ^= zob_hash.key[row + y + 1][col + x].value[type];
-          break;
-        case HT_HBAR:
-          // Clear the old position
-          hash ^= zob_hash.key[row][col].value[type];
-          hash ^= zob_hash.key[row][col + dx].value[type];
-          hash ^= zob_hash.key[row][col].value[0];
-          hash ^= zob_hash.key[row][col + dx].value[0];
-          // Take the new position
-          hash ^= zob_hash.key[row + y][col + x].value[0];
-          hash ^= zob_hash.key[row + y][col + x + dx].value[0];
-          hash ^= zob_hash.key[row + y][col + x].value[type];
-          hash ^= zob_hash.key[row + y][col + x + dx].value[type];
-          break;
-        case HT_BOX:
-          // Clear the old position
-          hash ^= zob_hash.key[row][col].value[type];
-          hash ^= zob_hash.key[row][col + dx].value[type];
-          hash ^= zob_hash.key[row + 1][col].value[type];
-          hash ^= zob_hash.key[row + 1][col + dx].value[type];
-          hash ^= zob_hash.key[row][col].value[0];
-          hash ^= zob_hash.key[row][col + dx].value[0];
-          hash ^= zob_hash.key[row + 1][col].value[0];
-          hash ^= zob_hash.key[row + 1][col + dx].value[0];
-          // Take the new position
-          hash ^= zob_hash.key[row + y][col + dir.x].value[0];
-          hash ^= zob_hash.key[row + y][col + dir.x + dx].value[0];
-          hash ^= zob_hash.key[row + y + 1][col + x].value[0];
-          hash ^= zob_hash.key[row + y + 1][col + x + dx].value[0];
-          hash ^= zob_hash.key[row + y][col + x].value[type];
-          hash ^= zob_hash.key[row + y][col + x + dx].value[type];
-          hash ^= zob_hash.key[row + y + 1][col + x].value[type];
-          hash ^= zob_hash.key[row + y + 1][col + x + dx].value[type];
-          break;
+      // Clear the old position
+      for (var i = 0; i < shape[0]; i++) {
+        for (var j = 0; j < shape[1]; j++) {
+          hash ^= zob_hash.key[row + i][col + j * dx].value[type];
+          hash ^= zob_hash.key[row + i][col + j * dx].value[0];
+        }
+      }
+
+      // Take the new position
+      for (var i = 0; i < shape[0]; i++) {
+        for (var j = 0; j < shape[1]; j++) {
+          hash ^= zob_hash.key[row + y + i][col + x + j * dx].value[0];
+          hash ^= zob_hash.key[row + y + i][col + x + j * dx].value[type];
+        }
       }
 
       return hash;
     }
 
-    function initZobristHash() {
+    function initZobristHash(numTypes) {
       var i, j;
 
       zob_hash = { key: [] };
@@ -178,14 +152,14 @@
 
         for (j = 0; j < HRD_GAME_COL; j++) {
           zob_hash.key[i][j] = { value: [] };
-          makeCellState(zob_hash.key[i][j]);
+          makeCellState(numTypes, zob_hash.key[i][j]);
         }
       }
     }
 
-    function makeCellState(cr) {
+    function makeCellState(numTypes, cr) {
       var i;
-      for (i = 0; i < MAX_WARRIOR_TYPE; i++) {
+      for (i = 0; i < numTypes; i++) {
         cr.value[i] = random32();
       }
     }
@@ -200,128 +174,54 @@
       return parseInt(tmp);
     }
 
-    function isPositionAvailable(state, type, row, col) {
-      var isOK = false;
-
-      switch (type) {
-        case HT_BLOCK:
-          isOK = state.board[row + 1][col + 1] === BOARD_CELL_EMPTY;
-          break;
-        case HT_VBAR:
-          isOK =
-            state.board[row + 1][col + 1] === BOARD_CELL_EMPTY && state.board[row + 2][col + 1] === BOARD_CELL_EMPTY;
-          break;
-        case HT_HBAR:
-          isOK =
-            state.board[row + 1][col + 1] === BOARD_CELL_EMPTY && state.board[row + 1][col + 2] === BOARD_CELL_EMPTY;
-          break;
-        case HT_BOX:
-          isOK =
-            state.board[row + 1][col + 1] === BOARD_CELL_EMPTY &&
-            state.board[row + 1][col + 2] === BOARD_CELL_EMPTY &&
-            state.board[row + 2][col + 1] === BOARD_CELL_EMPTY &&
-            state.board[row + 2][col + 2] === BOARD_CELL_EMPTY;
-          break;
-        default:
-          isOK = false;
-          break;
+    function isPositionAvailable(state, shape, row, col) {
+      for (var i = 1; i <= shape[0]; i++) {
+        for (var j = 1; j <= shape[1]; j++) {
+          if (state.board[row + i][col + j] !== BOARD_CELL_EMPTY) {
+            return false;
+          }
+        }
       }
-
-      return isOK;
+      return true;
     }
 
     function canBlockMove(state, blockIdx, dirIdx) {
-      var cv1, cv2, cv3, cv4;
-      var canMove = false;
       var block = state.blocks[blockIdx];
+      var shape = block.shape;
       var dir = directions[dirIdx];
 
-      switch (block.type) {
-        case HT_BLOCK:
-          canMove = state.board[block.row + dir.y + 1][block.col + dir.x + 1] == BOARD_CELL_EMPTY;
-          break;
-        case HT_VBAR:
-          cv1 = state.board[block.row + dir.y + 1][block.col + dir.x + 1];
-          cv2 = state.board[block.row + dir.y + 2][block.col + dir.x + 1];
-          canMove =
-            (cv1 == BOARD_CELL_EMPTY || cv1 == blockIdx + 1) && (cv2 == BOARD_CELL_EMPTY || cv2 == blockIdx + 1);
-          break;
-        case HT_HBAR:
-          cv1 = state.board[block.row + dir.y + 1][block.col + dir.x + 1];
-          cv2 = state.board[block.row + dir.y + 1][block.col + dir.x + 2];
-          canMove =
-            (cv1 == BOARD_CELL_EMPTY || cv1 == blockIdx + 1) && (cv2 == BOARD_CELL_EMPTY || cv2 == blockIdx + 1);
-          break;
-        case HT_BOX:
-          cv1 = state.board[block.row + dir.y + 1][block.col + dir.x + 1];
-          cv2 = state.board[block.row + dir.y + 2][block.col + dir.x + 1];
-          cv3 = state.board[block.row + dir.y + 1][block.col + dir.x + 2];
-          cv4 = state.board[block.row + dir.y + 2][block.col + dir.x + 2];
-          canMove =
-            (cv1 == BOARD_CELL_EMPTY || cv1 == blockIdx + 1) &&
-            (cv2 == BOARD_CELL_EMPTY || cv2 == blockIdx + 1) &&
-            (cv3 == BOARD_CELL_EMPTY || cv3 == blockIdx + 1) &&
-            (cv4 == BOARD_CELL_EMPTY || cv4 == blockIdx + 1);
-          break;
-        default:
-          canMove = false;
-          break;
+      for (var i = 1; i <= shape[0]; i++) {
+        for (var j = 1; j <= shape[1]; j++) {
+          var val = state.board[block.row + dir.y + i][block.col + dir.x + j];
+          if (val !== BOARD_CELL_EMPTY && val !== blockIdx + 1) {
+            return false;
+          }
+        }
       }
 
-      return canMove;
+      return true;
     }
 
-    function clearPosition(state, type, row, col) {
-      switch (type) {
-        case HT_BLOCK:
-          state.board[row + 1][col + 1] = BOARD_CELL_EMPTY;
-          break;
-        case HT_VBAR:
-          state.board[row + 1][col + 1] = BOARD_CELL_EMPTY;
-          state.board[row + 2][col + 1] = BOARD_CELL_EMPTY;
-          break;
-        case HT_HBAR:
-          state.board[row + 1][col + 1] = BOARD_CELL_EMPTY;
-          state.board[row + 1][col + 2] = BOARD_CELL_EMPTY;
-          break;
-        case HT_BOX:
-          state.board[row + 1][col + 1] = BOARD_CELL_EMPTY;
-          state.board[row + 1][col + 2] = BOARD_CELL_EMPTY;
-          state.board[row + 2][col + 1] = BOARD_CELL_EMPTY;
-          state.board[row + 2][col + 2] = BOARD_CELL_EMPTY;
-          break;
-        default:
-          break;
+    function clearPosition(state, shape, row, col) {
+      for (var i = 1; i <= shape[0]; i++) {
+        for (var j = 1; j <= shape[1]; j++) {
+          state.board[row + i][col + j] = BOARD_CELL_EMPTY;
+        }
       }
     }
 
-    function takePosition(state, blockIdx, type, row, col) {
-      switch (type) {
-        case HT_BLOCK:
-          state.board[row + 1][col + 1] = blockIdx + 1;
-          break;
-        case HT_VBAR:
-          state.board[row + 1][col + 1] = blockIdx + 1;
-          state.board[row + 2][col + 1] = blockIdx + 1;
-          break;
-        case HT_HBAR:
-          state.board[row + 1][col + 1] = blockIdx + 1;
-          state.board[row + 1][col + 2] = blockIdx + 1;
-          break;
-        case HT_BOX:
-          state.board[row + 1][col + 1] = blockIdx + 1;
-          state.board[row + 1][col + 2] = blockIdx + 1;
-          state.board[row + 2][col + 1] = blockIdx + 1;
-          state.board[row + 2][col + 2] = blockIdx + 1;
-          break;
-        default:
-          break;
+    function takePosition(state, blockIdx, shape, row, col) {
+      for (var i = 1; i <= shape[0]; i++) {
+        for (var j = 1; j <= shape[1]; j++) {
+          state.board[row + i][col + j] = blockIdx + 1;
+        }
       }
     }
 
     function addGameStateBlock(state, blockIdx, block) {
-      if (isPositionAvailable(state, block.type, block.row, block.col)) {
-        takePosition(state, blockIdx, block.type, block.row, block.col);
+      if (isPositionAvailable(state, block.shape, block.row, block.col)) {
+        takePosition(state, blockIdx, block.shape, block.row, block.col);
+        setTypes(state.types, block.shape);
         state.blocks.push(block);
         return true;
       }
@@ -351,7 +251,6 @@
 
     function createGame(blocks) {
       var game = {
-        caoIdx: 0,
         states: [],
         zhash: {},
         result: {
@@ -363,6 +262,7 @@
       var state = {
         board: [],
         blocks: [],
+        types: {},
         move: {
           blockIdx: 0,
           dirIdx: 0,
@@ -373,7 +273,6 @@
         parent: null,
       };
 
-      initZobristHash();
       initGameStateBoard(state);
 
       state.parent = null;
@@ -388,38 +287,21 @@
       if (typeof blocks[0] === 'object') {
         for (var i = 0; i < blocks.length; i++) {
           var block = {
-            type: blocks[i].type,
+            shape: blocks[i].shape,
             row: blocks[i].position[0],
             col: blocks[i].position[1],
           };
 
-          if (blocks[i].type === 4) {
-            game.caoIdx = i;
-          }
-
           if (!addGameStateBlock(state, i, block)) {
-            return null;
-          }
-        }
-      } else if (typeof blocks[0] === 'number') {
-        for (var i = 0; i < blocks.length; i += 3) {
-          var block = {
-            type: blocks[i],
-            row: blocks[i + 1],
-            col: blocks[i + 2],
-          };
-
-          if (blocks[i] === 4) {
-            game.caoIdx = i / 3;
-          }
-
-          if (!addGameStateBlock(state, i / 3, block)) {
             return null;
           }
         }
       } else {
         return null;
       }
+
+      var numTypes = Object.keys(state.types).length;
+      initZobristHash(numTypes);
 
       state.hash = getZobristHash(state);
       state.hashMirror = getMirrorZobristHash(state);
@@ -455,8 +337,8 @@
     }
 
     function isEscaped(game, gameState) {
-      var block = gameState.blocks[game.caoIdx];
-      return block.row === CAO_ESCAPE_ROW && block.col === CAO_ESCAPE_COL;
+      var block = gameState.blocks[0];
+      return block.row === ESCAPE_ROW && block.col === ESCAPE_COL;
     }
 
     function resolveGame(game) {
@@ -516,8 +398,8 @@
         var block = newState.blocks[blockIdx];
         var dir = directions[dirIdx];
 
-        clearPosition(newState, block.type, block.row, block.col);
-        takePosition(newState, blockIdx, block.type, block.row + dir.y, block.col + dir.x);
+        clearPosition(newState, block.shape, block.row, block.col);
+        takePosition(newState, blockIdx, block.shape, block.row + dir.y, block.col + dir.x);
 
         block.row = block.row + dir.y;
         block.col = block.col + dir.x;
@@ -590,23 +472,76 @@
     /**
      * Solve a klotski game
      *
-     * @param {Array} blocks - Starting positions
      * @param {Object} options - Game configuration
      */
-    this.solve = function(blocks, options) {
-      if (options && options.hasOwnProperty('useMirror') && typeof options.useMirror === 'boolean') {
-        NO_LR_MIRROR_ALLOW = options.useMirror;
-      }
+    this.solve = function(options) {
+      if (options) {
+        if (options.hasOwnProperty('useMirror') && typeof options.useMirror === 'boolean') {
+          NO_LR_MIRROR_ALLOW = options.useMirror;
+        }
 
-      var game = createGame(blocks);
+        if (
+          options.hasOwnProperty('boardSize') &&
+          Object.prototype.toString.call(options.boardSize) === '[object Array]' &&
+          options.boardSize.length === 2
+        ) {
+          HRD_GAME_ROW = options.boardSize[0];
+          HRD_GAME_COL = options.boardSize[1];
+          HRD_BOARD_WIDTH = HRD_GAME_COL + 2;
+          HRD_BOARD_HEIGHT = HRD_GAME_ROW + 2;
+        }
 
-      if (game) {
-        if (resolveGame(game)) {
-          return game.result.moves;
+        if (
+          options.hasOwnProperty('escapePoint') &&
+          Object.prototype.toString.call(options.escapePoint) === '[object Array]' &&
+          options.escapePoint.length === 2
+        ) {
+          ESCAPE_ROW = options.escapePoint[0];
+          ESCAPE_COL = options.escapePoint[1];
+        }
+
+        if (options.hasOwnProperty('blocks') && Object.prototype.toString.call(options.blocks) === '[object Array]') {
+          var game = createGame(options.blocks);
+
+          if (game) {
+            if (resolveGame(game)) {
+              return game.result.moves.reverse();
+            }
+          }
         }
       }
 
       return null;
+    };
+
+    this.mergeSteps = function(steps) {
+      if (!steps || steps.length === 0) {
+        return steps;
+      }
+
+      var result = [];
+      result[0] = {
+        blockIdx: steps[0].blockIdx,
+        dirIdx: steps[0].dirIdx,
+        count: 1,
+      };
+
+      for (var i = 1; i < steps.length; i++) {
+        var prev = result[result.length - 1];
+        var curr = steps[i];
+
+        if (curr.blockIdx === prev.blockIdx && curr.dirIdx === prev.dirIdx) {
+          prev.count++;
+        } else {
+          result.push({
+            blockIdx: curr.blockIdx,
+            dirIdx: curr.dirIdx,
+            count: 1,
+          });
+        }
+      }
+
+      return result;
     };
   }
 
