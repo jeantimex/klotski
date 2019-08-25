@@ -47,32 +47,34 @@ The latest version is now also always available at https://unpkg.org/pkg/klotski
 var Klotski = require('klotski');
 
 var klotski = new Klotski();
-var blocks = [
-  { "type": 4, "position": [0, 1] },
-  { "type": 2, "position": [0, 0] },
-  { "type": 2, "position": [0, 3] },
-  { "type": 2, "position": [2, 0] },
-  { "type": 2, "position": [2, 3] },
-  { "type": 3, "position": [2, 1] },
-  { "type": 1, "position": [3, 1] },
-  { "type": 1, "position": [3, 2] },
-  { "type": 1, "position": [4, 0] },
-  { "type": 1, "position": [4, 3] }
-];
+var game = {
+  blocks: [
+    { "shape": [2, 2], "position": [0, 1]},
+    { "shape": [2, 1], "position": [0, 0]},
+    { "shape": [2, 1], "position": [0, 3]},
+    { "shape": [2, 1], "position": [2, 0]},
+    { "shape": [2, 1], "position": [2, 3]},
+    { "shape": [1, 2], "position": [2, 1]},
+    { "shape": [1, 1], "position": [3, 1]},
+    { "shape": [1, 1], "position": [3, 2]},
+    { "shape": [1, 1], "position": [4, 0]},
+    { "shape": [1, 1], "position": [4, 3]},
+  ],
+  boardSize: [6, 6],
+  escapePoint: [2, 4],
+};
 
-var result = klotski.solve(blocks);
+var result = klotski.solve(game);
 ```
+The first block is the `blocks` list is always the one that tries to escape. 
 
-The input `blocks` can also be an array of integers that represent a series of `(type, x, y)` tuple, for example, the above code can be written as:
+The `shape` property defines the shape of the block, for example, `[1, 2]` means a horizontal block has 1 row and 2 columns, `[3, 1]` means a vertical block that has 3 rows and 1 column.
 
-```javascript
-var Klotski = require('klotski');
+`position: [x, y]` is the initial position `[x, y]` of the block, it uses zero-based numering.
 
-var klotski = new Klotski();
-var blocks = [4, 0, 1, 2, 0, 0, 2, 0, 3, 2, 2, 0, 2, 2, 3, 3, 2, 1, 1, 3, 1, 1, 3, 2, 1, 4, 0, 1, 4, 3];
+`boardSize: [rows, columns]` is the size of the game board.
 
-var result = klotski.solve(blocks);
-```
+`escapePoint: [x, y]` is the destination point for block 0 to escape.
 
 ## Algorithm
 
