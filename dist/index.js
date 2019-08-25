@@ -67,7 +67,7 @@ function playStep(steps, index) {
     block.style.left = x + 'px';
     block.style.top = y + 'px';
 
-    setTimeout(playStep, 1000, steps, index + 1);
+    setTimeout(playStep, 5000, steps, index + 1);
   }
 }
 
@@ -78,7 +78,7 @@ function playGame(game) {
   steps = klotski.mergeSteps(steps);
 
   console.log(steps);
-  setTimeout(playStep, 1000, steps, 0);
+  setTimeout(playStep, 5000, steps, 0);
 }
 
 initGameBoard(game);

@@ -4,7 +4,13 @@
   padding: 0;
 }
 
+body {
+  margin: 100px;
+  background-color: green;
+}
+
 #game-board {
+  background-color: white;
   border: 1px solid black;
   position: relative;
 }
