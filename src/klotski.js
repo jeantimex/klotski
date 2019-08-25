@@ -50,6 +50,7 @@
       for (var i = 0; i < gameState.blocks.length; i++) {
         newBlocks[i] = {
           shape: gameState.blocks[i].shape.slice(0),
+          directions: gameState.blocks[i].directions ? gameState.blocks[i].directions.slice(0) : null,
           row: gameState.blocks[i].row,
           col: gameState.blocks[i].col,
         };
@@ -187,6 +188,11 @@
 
     function canBlockMove(state, blockIdx, dirIdx) {
       var block = state.blocks[blockIdx];
+
+      if (block.directions && block.directions.indexOf(dirIdx) === -1) {
+        return false;
+      }
+
       var shape = block.shape;
       var dir = directions[dirIdx];
 
@@ -290,6 +296,7 @@
             shape: blocks[i].shape,
             row: blocks[i].position[0],
             col: blocks[i].position[1],
+            directions: blocks[i].directions || null,
           };
 
           if (!addGameStateBlock(state, i, block)) {
