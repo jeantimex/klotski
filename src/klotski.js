@@ -401,22 +401,6 @@
             return null;
           }
         }
-      } else if (typeof blocks[0] === 'number') {
-        for (var i = 0; i < blocks.length; i += 3) {
-          var block = {
-            type: blocks[i],
-            row: blocks[i + 1],
-            col: blocks[i + 2],
-          };
-
-          if (blocks[i] === 4) {
-            game.caoIdx = i / 3;
-          }
-
-          if (!addGameStateBlock(state, i / 3, block)) {
-            return null;
-          }
-        }
       } else {
         return null;
       }
