@@ -1,0 +1,18 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+#game-board {
+  border: 1px solid black;
+  position: relative;
+}
+
+.block {
+  border: 1px solid white;
+  position: absolute;
+  transition-property: top, left;
+  transition-duration: 0.1s, 0.1s;
+  transition-timing-function: ease-out;
+}

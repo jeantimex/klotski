@@ -472,10 +472,9 @@
     /**
      * Solve a klotski game
      *
-     * @param {Array} blocks - Starting positions
      * @param {Object} options - Game configuration
      */
-    this.solve = function(blocks, options) {
+    this.solve = function(options) {
       if (options) {
         if (options.hasOwnProperty('useMirror') && typeof options.useMirror === 'boolean') {
           NO_LR_MIRROR_ALLOW = options.useMirror;
@@ -500,17 +499,49 @@
           ESCAPE_ROW = options.escapePoint[0];
           ESCAPE_COL = options.escapePoint[1];
         }
-      }
 
-      var game = createGame(blocks);
+        if (options.hasOwnProperty('blocks') && Object.prototype.toString.call(options.blocks) === '[object Array]') {
+          var game = createGame(options.blocks);
 
-      if (game) {
-        if (resolveGame(game)) {
-          return game.result.moves;
+          if (game) {
+            if (resolveGame(game)) {
+              return game.result.moves.reverse();
+            }
+          }
         }
       }
 
       return null;
+    };
+
+    this.mergeSteps = function(steps) {
+      if (!steps || steps.length === 0) {
+        return steps;
+      }
+
+      var result = [];
+      result[0] = {
+        blockIdx: steps[0].blockIdx,
+        dirIdx: steps[0].dirIdx,
+        count: 1,
+      };
+
+      for (var i = 1; i < steps.length; i++) {
+        var prev = result[result.length - 1];
+        var curr = steps[i];
+
+        if (curr.blockIdx === prev.blockIdx && curr.dirIdx === prev.dirIdx) {
+          prev.count++;
+        } else {
+          result.push({
+            blockIdx: curr.blockIdx,
+            dirIdx: curr.dirIdx,
+            count: 1,
+          });
+        }
+      }
+
+      return result;
     };
   }
 
