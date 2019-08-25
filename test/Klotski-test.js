@@ -10,16 +10,16 @@ describe('Klotski', function() {
   });
 
   it('should solve the problem', function() {
-    var result = klotski.solve(hrdGames[0].blocks);
-    assert.equal(result[0].step, 81);
+    var result = klotski.solve(hrdGames[0]);
+    assert.equal(result[result.length - 1].step, 81);
     assert.equal(result.length, 118);
   });
 
   it('should solve the problem with options', function() {
-    var result = klotski.solve(hrdGames[0].blocks, {
+    var result = klotski.solve(hrdGames[0], {
       useMirror: false,
     });
-    assert.equal(result[0].step, 81);
+    assert.equal(result[result.length - 1].step, 81);
     assert.equal(result.length, 118);
   });
 
@@ -39,7 +39,7 @@ describe('Klotski', function() {
   });
 
   it('should not solve the game', function() {
-    var result = klotski.solve(hrdGames[33].blocks);
+    var result = klotski.solve(hrdGames[33]);
     assert.equal(result, null);
   });
 });

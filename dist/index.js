@@ -1,5 +1,4 @@
 var klotski = new Klotski();
-console.log(klotski);
 
 var cellSize = 50;
 
