@@ -568,7 +568,7 @@
     }
 
     /**
-     * 
+     *
      * @param {Object} game
      * @param {Object} gameState
      * @param {Number} blockIdx
@@ -589,9 +589,9 @@
 
     /**
      * Solve a klotski game
-     * 
+     *
      * @param {Array} blocks - Starting positions
-     * @param {Object} options - Game configuration 
+     * @param {Object} options - Game configuration
      */
     this.solve = function(blocks, options) {
       if (options && options.hasOwnProperty('useMirror') && typeof options.useMirror === 'boolean') {
