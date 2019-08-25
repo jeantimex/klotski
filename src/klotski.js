@@ -10,8 +10,8 @@
   var HRD_BOARD_WIDTH = HRD_GAME_COL + 2;
   var HRD_BOARD_HEIGHT = HRD_GAME_ROW + 2;
 
-  var CAO_ESCAPE_ROW = 3;
-  var CAO_ESCAPE_COL = 1;
+  var ESCAPE_ROW = 3;
+  var ESCAPE_COL = 1;
 
   var BOARD_CELL_EMPTY = 0;
   var BOARD_CELL_BORDER = -1;
@@ -251,7 +251,6 @@
 
     function createGame(blocks) {
       var game = {
-        caoIdx: 0,
         states: [],
         zhash: {},
         result: {
@@ -338,8 +337,8 @@
     }
 
     function isEscaped(game, gameState) {
-      var block = gameState.blocks[game.caoIdx];
-      return block.row === CAO_ESCAPE_ROW && block.col === CAO_ESCAPE_COL;
+      var block = gameState.blocks[0];
+      return block.row === ESCAPE_ROW && block.col === ESCAPE_COL;
     }
 
     function resolveGame(game) {
@@ -477,8 +476,30 @@
      * @param {Object} options - Game configuration
      */
     this.solve = function(blocks, options) {
-      if (options && options.hasOwnProperty('useMirror') && typeof options.useMirror === 'boolean') {
-        NO_LR_MIRROR_ALLOW = options.useMirror;
+      if (options) {
+        if (options.hasOwnProperty('useMirror') && typeof options.useMirror === 'boolean') {
+          NO_LR_MIRROR_ALLOW = options.useMirror;
+        }
+
+        if (
+          options.hasOwnProperty('boardSize') &&
+          Object.prototype.toString.call(options.boardSize) === '[object Array]' &&
+          options.boardSize.length === 2
+        ) {
+          HRD_GAME_ROW = options.boardSize[0];
+          HRD_GAME_COL = options.boardSize[1];
+          HRD_BOARD_WIDTH = HRD_GAME_COL + 2;
+          HRD_BOARD_HEIGHT = HRD_GAME_ROW + 2;
+        }
+
+        if (
+          options.hasOwnProperty('escapePoint') &&
+          Object.prototype.toString.call(options.escapePoint) === '[object Array]' &&
+          options.escapePoint.length === 2
+        ) {
+          ESCAPE_ROW = options.escapePoint[0];
+          ESCAPE_COL = options.escapePoint[1];
+        }
       }
 
       var game = createGame(blocks);
