@@ -60,8 +60,8 @@ var game = {
     { "shape": [1, 1], "position": [4, 0] },
     { "shape": [1, 1], "position": [4, 3] },
   ],
-  boardSize: [6, 6],
-  escapePoint: [2, 4],
+  boardSize: [5, 4],
+  escapePoint: [3, 1],
 };
 
 var result = klotski.solve(game);
