@@ -60,8 +60,8 @@ var game = {
     { "shape": [1, 1], "position": [4, 0] },
     { "shape": [1, 1], "position": [4, 3] },
   ],
-  boardSize: [6, 6],
-  escapePoint: [2, 4],
+  boardSize: [5, 4],
+  escapePoint: [3, 1],
 };
 
 var result = klotski.solve(game);
@@ -70,11 +70,11 @@ The first block is the `blocks` list is always the one that tries to escape.
 
 The `shape` property defines the shape of the block, for example, `[1, 2]` means a horizontal block has 1 row and 2 columns, `[3, 1]` means a vertical block that has 3 rows and 1 column.
 
-`position: [x, y]` is the initial position `[x, y]` of the block, it uses zero-based numering.
+`position: [x, y]` is the initial position of the block, it uses zero-based numering.
 
-`boardSize: [rows, columns]` is the size of the game board.
+`boardSize: [number of rows, number of columns]` is the size of the game board.
 
-`escapePoint: [x, y]` is the destination point for block 0 to escape.
+`escapePoint: [x, y]` is the destination point for block 0 to escape, it uses zero-based numering.
 
 Each block's movement can also be restricted, for example `{ "shape": [2, 1], "position": [0, 0], directions: [0, 2] }`, this will only allow the block to move up and down. The directions code is as follows:
 ```
