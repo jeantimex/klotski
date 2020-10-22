@@ -160,7 +160,7 @@
 
     function makeCellState(numTypes, cr) {
       var i;
-      for (i = 0; i < numTypes; i++) {
+      for (i = 0; i < numTypes + 1; i++) {
         cr.value[i] = random32();
       }
     }
