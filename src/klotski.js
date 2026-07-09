@@ -349,131 +349,107 @@
     }
 
     function resolveGame(game) {
-      var index = 0;
+      var buckets = [];
+      var minStep = 0;
+      var queueSize = 0;
 
-      while (index < game.states.length) {
-        var gameState = game.states[index++];
+      function pushToQueue(state) {
+        var step = state.step;
+        if (!buckets[step]) {
+          buckets[step] = [];
+        }
+        buckets[step].push(state);
+        queueSize++;
+        if (step < minStep) {
+          minStep = step;
+        }
+      }
 
-        markGameState(game, gameState);
+      function popFromQueue() {
+        if (queueSize === 0) {
+          return null;
+        }
+        while (!buckets[minStep] || buckets[minStep].length === 0) {
+          minStep++;
+        }
+        queueSize--;
+        return buckets[minStep].shift();
+      }
+
+      var initialState = game.states[0];
+      pushToQueue(initialState);
+      game.zhash[initialState.hash + '-null'] = 0;
+      if (NO_LR_MIRROR_ALLOW) {
+        game.zhash[initialState.hashMirror + '-null'] = 0;
+      }
+
+      while (queueSize > 0) {
+        var gameState = popFromQueue();
 
         if (isEscaped(game, gameState)) {
           outputMoveRecords(game, gameState);
           return true;
-        } else {
-          searchNewGameStates(game, gameState);
-        }
-      }
-
-      return false;
-    }
-
-    function searchNewGameStates(game, gameState) {
-      for (var i = 0; i < gameState.blocks.length; i++) {
-        for (var j = 0; j < MAX_MOVE_DIRECTION; j++) {
-          trySearchBlockNewState(game, gameState, i, j);
-        }
-      }
-    }
-
-    function trySearchBlockNewState(game, gameState, blockIdx, dirIdx) {
-      var newState = moveBlockToNewState(game, gameState, blockIdx, dirIdx);
-
-      if (newState) {
-        if (addNewStatePattern(game, newState)) {
-          tryBlockContinueMove(game, newState, blockIdx, dirIdx);
-          return;
-        }
-      }
-    }
-
-    function moveBlockToNewState(game, gameState, blockIdx, dirIdx) {
-      if (canBlockMove(gameState, blockIdx, dirIdx)) {
-        var hash = getZobristHashUpdate(gameState, blockIdx, dirIdx);
-        if (game.zhash[hash]) {
-          return null;
         }
 
-        var hashMirror = 0;
-        if (NO_LR_MIRROR_ALLOW) {
-          hashMirror = getZobristHashUpdate(gameState, blockIdx, dirIdx, true);
-          if (game.zhash[hashMirror]) {
-            return null;
-          }
-        }
+        for (var i = 0; i < gameState.blocks.length; i++) {
+          for (var dirIdx = 0; dirIdx < MAX_MOVE_DIRECTION; dirIdx++) {
+            if (canBlockMove(gameState, i, dirIdx)) {
+              var hash = getZobristHashUpdate(gameState, i, dirIdx);
+              var hashMirror = 0;
+              if (NO_LR_MIRROR_ALLOW) {
+                hashMirror = getZobristHashUpdate(gameState, i, dirIdx, true);
+              }
 
-        var newState = copyGameState(gameState);
-        var block = newState.blocks[blockIdx];
-        var dir = directions[dirIdx];
+              var isContinue = false;
+              if (gameState.parent !== null) {
+                isContinue = gameState.move.blockIdx === i && !isReverseDirection(dirIdx, gameState.move.dirIdx);
+              }
 
-        clearPosition(newState, block.shape, block.row, block.col);
-        takePosition(newState, blockIdx, block.shape, block.row + dir.y, block.col + dir.x);
+              var newStep = isContinue ? gameState.step : gameState.step + 1;
+              var stateKey = hash + '-' + i;
+              var stateKeyMirror = hashMirror + '-' + i;
 
-        block.row = block.row + dir.y;
-        block.col = block.col + dir.x;
+              if (game.zhash.hasOwnProperty(stateKey) && game.zhash[stateKey] <= newStep) {
+                continue;
+              }
+              if (NO_LR_MIRROR_ALLOW) {
+                if (game.zhash.hasOwnProperty(stateKeyMirror) && game.zhash[stateKeyMirror] <= newStep) {
+                  continue;
+                }
+              }
 
-        newState.blocks[blockIdx] = block;
+              var newState = copyGameState(gameState);
+              var block = newState.blocks[i];
+              var dir = directions[dirIdx];
 
-        newState.step = gameState.step + 1;
-        newState.parent = gameState;
-        newState.move.blockIdx = blockIdx;
-        newState.move.dirIdx = dirIdx;
+              clearPosition(newState, block.shape, block.row, block.col);
+              takePosition(newState, i, block.shape, block.row + dir.y, block.col + dir.x);
 
-        newState.hash = hash;
+              block.row = block.row + dir.y;
+              block.col = block.col + dir.x;
 
-        if (NO_LR_MIRROR_ALLOW) {
-          newState.hashMirror = hashMirror;
-        }
-        return newState;
-      }
+              newState.blocks[i] = block;
+              newState.step = newStep;
+              newState.parent = gameState;
+              newState.move.blockIdx = i;
+              newState.move.dirIdx = dirIdx;
+              newState.hash = hash;
+              if (NO_LR_MIRROR_ALLOW) {
+                newState.hashMirror = hashMirror;
+              }
 
-      return null;
-    }
+              game.zhash[stateKey] = newStep;
+              if (NO_LR_MIRROR_ALLOW) {
+                game.zhash[stateKeyMirror] = newStep;
+              }
 
-    function addNewStatePattern(game, gameState) {
-      var l2rHash = gameState.hash;
-      var r2lHash = 0;
-
-      if (game.zhash[l2rHash]) {
-        return false;
-      }
-
-      if (NO_LR_MIRROR_ALLOW) {
-        r2lHash = gameState.hashMirror;
-
-        if (game.zhash[r2lHash]) {
-          return false;
-        }
-      }
-
-      game.zhash[l2rHash] = true;
-
-      if (NO_LR_MIRROR_ALLOW) {
-        game.zhash[r2lHash] = true;
-      }
-
-      game.states.push(gameState);
-
-      return true;
-    }
-
-    /**
-     *
-     * @param {Object} game
-     * @param {Object} gameState
-     * @param {Number} blockIdx
-     * @param {Number} lastDirIdx
-     */
-    function tryBlockContinueMove(game, gameState, blockIdx, lastDirIdx) {
-      for (var d = 0; d < MAX_MOVE_DIRECTION; d++) {
-        if (!isReverseDirection(d, lastDirIdx)) {
-          var newState = moveBlockToNewState(game, gameState, blockIdx, d);
-          if (newState) {
-            if (addNewStatePattern(game, newState)) {
-              newState.step--;
+              pushToQueue(newState);
             }
           }
         }
       }
+
+      return false;
     }
 
     /**

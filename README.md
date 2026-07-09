@@ -113,6 +113,22 @@ with Zobrist hashing, we can calculate the mirror state in `O(1)` time, see `get
 
 At last, in order to use Zobrist hashing, we have to initialize the hashing table. Basically we need to generate a random number for each possible state inside a single cell of the board. A normal Klotski game has 20 cells (5 rows x 4 columns), and each cell can be empty or occupied by 5 different types of blocks. In [klotski.js](src/klotski.js), we use a three-dimensional array to store the initial random numbers, see `initZobristHash()` function for more details.
 
+### Dijkstra's Algorithm & Bucket Queue (for Combined Moves)
+
+In Klotski, moves are usually evaluated as **combined moves** (where moving the same block continuously in one or more steps counts as $1$ move). This represents a shortest path problem with non-uniform edge weights ($0$ and $1$):
+* Moving a **different** block has a cost of $1$.
+* Continuing to move the **same** block has a cost of $0$.
+
+Under this weight scheme, standard BFS (which assumes uniform edge weights of $1$) does not guarantee the shortest path in terms of combined moves, and standard duplicate pruning (marking a state visited when first reached by BFS) can discard optimal paths.
+
+To solve this, the solver utilizes **Dijkstra's Algorithm** with a **Bucket Queue** (Dial's implementation) to process states in increasing order of combined moves. 
+
+#### State Key Uniqueness
+Because the cost of the next transition depends on which block was moved last (continuation vs. new move), the identity of a state in our search space is defined by both the board layout hash and the last moved block index:
+$$\text{State Key} = \text{Board Hash} + \text{Last Moved Block Index}$$
+
+We only prune duplicate states if we reach the same configuration with the same last-moved block index and a worse or equal step cost.
+
 ## Benchmark
 
 The average running time is calculated by finding the minimum moves of each game 100 times.
@@ -120,50 +136,50 @@ The average running time is calculated by finding the minimum moves of each game
 | ![1](docs/images/1.png) | ![2](docs/images/2.png) | ![3](docs/images/3.png) | ![4](docs/images/4.png) | ![5](docs/images/5.png) |
 |:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|
 | 横刀立马 | 指挥若定 | 将拥曹营 | 齐头并进 | 并分三路 |
-| 81 moves | 71 moves | 73 moves | 60 moves | 73 moves |
-| 65.7 ms | 63.2 ms | 66.4 ms | 65.4 ms | 46.1 ms |
+| 81 moves | 70 moves | 72 moves | 60 moves | 73 moves |
+| 145.7 ms | 130.6 ms | 137.8 ms | 136.1 ms | 97.1 ms |
 
 | ![6](docs/images/6.png) | ![7](docs/images/7.png) | ![8](docs/images/8.png) | ![9](docs/images/9.png) | ![10](docs/images/10.png) |
 |:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|
 | 雨声淅沥 | 左右布兵 | 桃花园中 | 一路进军 | 一路顺风 |
 | 47 moves | 54 moves | 70 moves | 58 moves | 39 moves |
-| 5.3 ms | 71.9 ms | 80.6 ms | 74.8 ms | 5.0 ms |
+| 12.1 ms | 118.3 ms | 131.0 ms | 129.2 ms | 11.8 ms |
 
 | ![11](docs/images/11.png) | ![12](docs/images/12.png) | ![13](docs/images/13.png) | ![14](docs/images/14.png) | ![15](docs/images/15.png) |
 |:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|
 | 围而不歼 | 捷足先登 | 插翅难飞 | 守口如瓶 I | 守口如瓶 II |
-| 62 moves | 32 moves | 62 moves | 83 moves | 100 moves |
-| 4.6 ms | 3.1 ms | 146.8 ms | 145.8 ms | 151.0 ms |
+| 62 moves | 32 moves | 62 moves | 81 moves | 99 moves |
+| 12.0 ms | 7.0 ms | 263.3 ms | 251.5 ms | 246.5 ms |
 
 | ![16](docs/images/16.png) | ![17](docs/images/17.png) | ![18](docs/images/18.png) | ![19](docs/images/19.png) | ![20](docs/images/20.png) |
 |:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|
 | 双将挡路 | 横马当关 | 层层设防 I | 层层设防 II | 兵挡将阻 |
-| 73 moves | 84 moves | 103 moves | 121 moves | 88 moves |
-| 143.6 ms | 138.9 ms | 96.6 ms | 122.2 ms | 119.7 ms |
+| 73 moves | 83 moves | 102 moves | 120 moves | 87 moves |
+| 258.6 ms | 242.6 ms | 162.9 ms | 210.0 ms | 206.5 ms |
 
 | ![21](docs/images/21.png) | ![22](docs/images/22.png) | ![23](docs/images/23.png) | ![24](docs/images/24.png) | ![25](docs/images/25.png) |
 |:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|
 | 堵塞要道 | 瓮中之鳖 | 层峦叠嶂 | 水泄不通 | 四路进兵 |
-| 41 moves | 107 moves | 80 moves | 78 moves | 88 moves |
-| 35.2 ms | 100.1 ms | 31.2 ms | 41.5 ms | 34.8 ms |
+| 40 moves | 103 moves | 98 moves | 79 moves | 77 moves |
+| 99.5 ms | 158.1 ms | 166.2 ms | 102.4 ms | 90.0 ms |
 
 | ![26](docs/images/26.png) | ![27](docs/images/27.png) | ![28](docs/images/28.png) | ![29](docs/images/29.png) | ![30](docs/images/30.png) |
 |:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|
 | 入地无门 | 勇闯五关 | 四面楚歌 | 前呼后拥 | 兵临曹营 |
-| 88 moves | 34 moves | 57 moves | 22 moves | 34 moves |
-| 34.8 ms | 3.4 ms | 30.2 ms | 1.7 ms | 3.0 ms |
+| 87 moves | 34 moves | 57 moves | 22 moves | 34 moves |
+| 87.3 ms | 10.8 ms | 94.1 ms | 5.5 ms | 7.5 ms |
 
 | ![31](docs/images/31.png) | ![32](docs/images/32.png) | ![33](docs/images/33.png) | ![35](docs/images/35.png) | ![36](docs/images/36.png) |
 |:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|
 | 五将逼宫 | 前挡后阻 | 近在咫尺 | 小燕出巢 | 比翼横空 |
-| 36 moves | 42 moves | 99 moves | 107 moves | 28 moves |
-| 11.8 ms | 32.7 ms | 151.9 ms | 103.0 ms | 6.9 ms |
+| 36 moves | 42 moves | 98 moves | 103 moves | 28 moves |
+| 39.3 ms | 90.0 ms | 246.2 ms | 159.4 ms | 21.0 ms |
 
 | ![37](docs/images/37.png) | ![38](docs/images/38.png) | ![39](docs/images/39.png) | ![40](docs/images/40.png) | ![34](docs/images/34.png) |
 |:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|
 | 夹道藏兵 | 屯兵东路 | 四将连关 | 峰回路转 | 走投无路 |
-| 78 moves | 73 moves | 40 moves | 140 moves | no solution |
-| 34.9 ms | 67.6 ms | 6.6 ms | 141.3 ms | - |
+| 75 moves | 71 moves | 39 moves | 138 moves | no solution |
+| 84.1 ms | 113.1 ms | 16.9 ms | 233.4 ms | - |
 
 ## Contribution
 
