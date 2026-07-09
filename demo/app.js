@@ -631,8 +631,8 @@ const directions = [
 const CELL_SIZE = 80;
 
 // Chinese names for blocks to add a traditional premium touch
-const VERTICAL_NAMES = ["关羽", "张飞", "赵云", "马超", "黄忠"];
-const HORIZONTAL_NAMES = ["张飞", "赵云", "马超", "黄忠", "关羽"];
+const VERTICAL_NAMES = ["黄忠", "张飞", "赵云", "马超", "黄忠"];
+const HORIZONTAL_NAMES = ["关羽", "赵云", "马超", "黄忠", "关羽"];
 
 // Init
 window.addEventListener('DOMContentLoaded', () => {
