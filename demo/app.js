@@ -616,6 +616,7 @@ let currentBlocksState = []; // Track actual locations
 let playbackMode = "Forward"; // "Forward", "Reverse", or "Manual"
 let manualMovesCount = 0;
 let lastMovedBlockIdx = -1;
+let solutionMoveOffset = 0;
 
 // Direction vectors matching src/klotski.js
 const directions = [
@@ -690,6 +691,7 @@ function loadGame(index) {
   playbackMode = "Forward";
   manualMovesCount = 0;
   lastMovedBlockIdx = -1;
+  solutionMoveOffset = 0;
   
   renderBoard();
   updateStatus();
@@ -953,6 +955,7 @@ function solveFromCurrentState() {
     solutionSteps = klotski.mergeSteps(result);
     currentStepIndex = 0;
     isReversing = false;
+    solutionMoveOffset = manualMovesCount;
     playbackMode = "Forward";
     return true;
   }
@@ -1058,13 +1061,9 @@ function updateStatus() {
     document.getElementById('step-counter').textContent = manualMovesCount + ' moves';
     document.getElementById('progress-bar').style.width = '0%';
   } else {
-    const totalMoves = solutionSteps.length > 0 ? solutionSteps[solutionSteps.length - 1].step : 0;
-    if (currentStepIndex === 0) {
-      document.getElementById('step-counter').textContent = '0 moves';
-    } else {
-      const currentMoves = currentStepIndex > 0 ? solutionSteps[currentStepIndex - 1].step : 0;
-      document.getElementById('step-counter').textContent = currentMoves + ' / ' + totalMoves;
-    }
+    const solutionMoves = currentStepIndex > 0 ? solutionSteps[currentStepIndex - 1].step : 0;
+    const currentMoves = solutionMoveOffset + solutionMoves;
+    document.getElementById('step-counter').textContent = currentMoves + ' moves';
     const percentage = solutionSteps.length > 0 ? (currentStepIndex / solutionSteps.length) * 100 : 0;
     document.getElementById('progress-bar').style.width = percentage + '%';
   }
