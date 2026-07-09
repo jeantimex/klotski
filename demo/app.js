@@ -823,9 +823,19 @@ function updateControlButtons() {
   }
 
   const isAutoPlaying = Boolean(autoPlayInterval);
+  const isEndState = isCurrentEndState();
   prevBtn.disabled = isAutoPlaying;
-  nextBtn.disabled = isAutoPlaying || isCompleted;
-  autoBtn.disabled = isCompleted;
+  nextBtn.disabled = isAutoPlaying || isEndState;
+  autoBtn.disabled = isEndState;
+}
+
+function isCurrentEndState() {
+  if (playbackMode === "Manual") {
+    const caocao = currentBlocksState[0];
+    return Boolean(caocao && caocao.row === 3 && caocao.col === 1);
+  }
+
+  return solutionSteps.length > 0 && currentStepIndex === solutionSteps.length;
 }
 
 function handleStepClick(e) {
@@ -1057,7 +1067,7 @@ function solveFromCurrentState() {
 }
 
 function triggerNext() {
-  if (isCompleted) {
+  if (isCompleted && isCurrentEndState()) {
     return;
   }
 
@@ -1105,11 +1115,9 @@ function triggerPrev() {
   if (currentStepIndex > 0) {
     currentStepIndex--;
     applyStepBackward(solutionSteps[currentStepIndex]);
+    isReversing = false;
     updateStatus();
 
-    if (currentStepIndex === 0) {
-      isReversing = false;
-    }
   } else {
     undoManualMove();
   }
@@ -1147,6 +1155,10 @@ function updateBlockDOM(blockIdx) {
 function updateStatus() {
   const isManual = playbackMode === "Manual";
 
+  if (!isCurrentEndState()) {
+    isCompleted = false;
+  }
+
   if (isManual) {
     document.getElementById('step-counter').textContent = manualMovesCount + ' moves';
   } else {
@@ -1162,6 +1174,7 @@ function updateStatus() {
 
   // Highlight next block to move
   updateHighlights();
+  updateControlButtons();
 }
 
 function updateHighlights() {
@@ -1191,7 +1204,7 @@ function updateHighlights() {
 }
 
 function toggleAutoPlay() {
-  if (isCompleted) {
+  if (isCompleted && isCurrentEndState()) {
     return;
   }
 
@@ -1203,7 +1216,7 @@ function toggleAutoPlay() {
 }
 
 function startAutoPlay() {
-  if (isCompleted) {
+  if (isCompleted && isCurrentEndState()) {
     return;
   }
 
