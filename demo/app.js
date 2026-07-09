@@ -824,7 +824,7 @@ function updateControlButtons() {
 
   const isAutoPlaying = Boolean(autoPlayInterval);
   const isEndState = isCurrentEndState();
-  prevBtn.disabled = isAutoPlaying;
+  prevBtn.disabled = isAutoPlaying || !hasPreviousState();
   nextBtn.disabled = isAutoPlaying || isEndState;
   autoBtn.disabled = isEndState;
 }
@@ -836,6 +836,14 @@ function isCurrentEndState() {
   }
 
   return solutionSteps.length > 0 && currentStepIndex === solutionSteps.length;
+}
+
+function hasPreviousState() {
+  if (playbackMode === "Manual") {
+    return manualMoveHistory.length > 0;
+  }
+
+  return currentStepIndex > 0 || manualMoveHistory.length > 0;
 }
 
 function handleStepClick(e) {
