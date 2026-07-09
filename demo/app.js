@@ -803,18 +803,13 @@ function handleStepClick(e) {
     stopAutoPlay();
     return;
   }
-  
+
   // Find if we clicked on a block
   const blockEl = e.target.closest('.block');
   if (blockEl) {
     e.stopPropagation();
     const blockIdx = parseInt(blockEl.id.replace('block-', ''));
     handleManualBlockClick(blockIdx);
-  } else {
-    // Clicked empty space on the board -> advance/reverse normally if not in manual mode
-    if (playbackMode !== "Manual") {
-      triggerNext();
-    }
   }
 }
 
