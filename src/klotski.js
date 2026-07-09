@@ -1,4 +1,4 @@
-(function() {
+(function () {
   'use strict';
 
   var NO_LR_MIRROR_ALLOW = true;
@@ -20,7 +20,12 @@
     /**
      * Private variables
      */
-    var directions = [{ x: 0, y: 1 }, { x: 1, y: 0 }, { x: 0, y: -1 }, { x: -1, y: 0 }];
+    var directions = [
+      { x: 0, y: 1 },
+      { x: 1, y: 0 },
+      { x: 0, y: -1 },
+      { x: -1, y: 0 },
+    ];
     var directionName = ['Down', 'Right', 'Up', 'Left'];
     var zob_hash;
     var level = 0;
@@ -457,7 +462,7 @@
      *
      * @param {Object} options - Game configuration
      */
-    this.solve = function(options) {
+    this.solve = function (options) {
       if (options) {
         if (options.hasOwnProperty('useMirror') && typeof options.useMirror === 'boolean') {
           NO_LR_MIRROR_ALLOW = options.useMirror;
@@ -497,7 +502,7 @@
       return null;
     };
 
-    this.mergeSteps = function(steps) {
+    this.mergeSteps = function (steps) {
       if (!steps || steps.length === 0) {
         return steps;
       }
@@ -530,7 +535,7 @@
 
   if (typeof define !== 'undefined' && define !== null && define.amd) {
     // AMD
-    define(function() {
+    define(function () {
       return Klotski;
     });
   } else if (
