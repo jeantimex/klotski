@@ -353,7 +353,7 @@
       return block.row === ESCAPE_ROW && block.col === ESCAPE_COL;
     }
 
-    function resolveGame(game) {
+    function resolveGame(game, options) {
       var buckets = [];
       var minStep = 0;
       var queueSize = 0;
@@ -381,11 +381,15 @@
         return buckets[minStep].shift();
       }
 
+      var isSingle = options && options.singleMove;
       var initialState = game.states[0];
       pushToQueue(initialState);
-      game.zhash[initialState.hash + '-null'] = 0;
+
+      var initialKey = isSingle ? initialState.hash : initialState.hash + '-null';
+      game.zhash[initialKey] = 0;
       if (NO_LR_MIRROR_ALLOW) {
-        game.zhash[initialState.hashMirror + '-null'] = 0;
+        var initialKeyMirror = isSingle ? initialState.hashMirror : initialState.hashMirror + '-null';
+        game.zhash[initialKeyMirror] = 0;
       }
 
       while (queueSize > 0) {
@@ -406,13 +410,13 @@
               }
 
               var isContinue = false;
-              if (gameState.parent !== null) {
+              if (gameState.parent !== null && !isSingle) {
                 isContinue = gameState.move.blockIdx === i && !isReverseDirection(dirIdx, gameState.move.dirIdx);
               }
 
               var newStep = isContinue ? gameState.step : gameState.step + 1;
-              var stateKey = hash + '-' + i;
-              var stateKeyMirror = hashMirror + '-' + i;
+              var stateKey = isSingle ? hash : hash + '-' + i;
+              var stateKeyMirror = isSingle ? hashMirror : hashMirror + '-' + i;
 
               if (game.zhash.hasOwnProperty(stateKey) && game.zhash[stateKey] <= newStep) {
                 continue;
@@ -492,7 +496,7 @@
           var game = createGame(options.blocks);
 
           if (game) {
-            if (resolveGame(game)) {
+            if (resolveGame(game, options)) {
               return game.result.moves.reverse();
             }
           }
@@ -511,6 +515,7 @@
       result[0] = {
         blockIdx: steps[0].blockIdx,
         dirIdx: steps[0].dirIdx,
+        step: steps[0].step,
         count: 1,
       };
 
@@ -520,10 +525,12 @@
 
         if (curr.blockIdx === prev.blockIdx && curr.dirIdx === prev.dirIdx) {
           prev.count++;
+          prev.step = curr.step;
         } else {
           result.push({
             blockIdx: curr.blockIdx,
             dirIdx: curr.dirIdx,
+            step: curr.step,
             count: 1,
           });
         }

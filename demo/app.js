@@ -615,6 +615,7 @@ let autoPlayInterval = null;
 let currentBlocksState = []; // Track actual locations
 let playbackMode = "Forward"; // "Forward", "Reverse", or "Manual"
 let manualMovesCount = 0;
+let lastMovedBlockIdx = -1;
 
 // Direction vectors matching src/klotski.js
 const directions = [
@@ -667,15 +668,18 @@ function loadGame(index) {
   });
   
   // Solve
+  const useCombined = document.getElementById('combined-moves-toggle').checked;
   const result = klotski.solve({
     blocks: game.blocks,
     boardSize: [5, 4],
-    escapePoint: [3, 1]
+    escapePoint: [3, 1],
+    singleMove: !useCombined
   });
 
   if (result) {
     solutionSteps = klotski.mergeSteps(result);
-    document.getElementById('min-moves').textContent = solutionSteps.length + ' moves';
+    const totalMoves = solutionSteps.length > 0 ? solutionSteps[solutionSteps.length - 1].step : 0;
+    document.getElementById('min-moves').textContent = totalMoves + ' moves';
   } else {
     solutionSteps = [];
     document.getElementById('min-moves').textContent = 'No solution';
@@ -685,6 +689,7 @@ function loadGame(index) {
   isReversing = false;
   playbackMode = "Forward";
   manualMovesCount = 0;
+  lastMovedBlockIdx = -1;
   
   renderBoard();
   updateStatus();
@@ -737,6 +742,11 @@ function setupEvents() {
   // Selector
   document.getElementById('game-selector').addEventListener('change', (e) => {
     loadGame(e.target.value);
+  });
+
+  // Combined Moves Toggler
+  document.getElementById('combined-moves-toggle').addEventListener('change', () => {
+    loadGame(currentGameIndex);
   });
 
   // Click on board/blocks to advance/reverse
@@ -841,7 +851,12 @@ function handleManualBlockClick(blockIdx) {
     block.col = target.col;
     block.visited.add(target.key);
     
-    manualMovesCount++;
+    const useCombined = document.getElementById('combined-moves-toggle').checked;
+    if (!useCombined || lastMovedBlockIdx !== blockIdx) {
+      manualMovesCount++;
+    }
+    lastMovedBlockIdx = blockIdx;
+    
     playbackMode = "Manual";
     updateBlockDOM(blockIdx);
     updateStatus();
@@ -858,7 +873,12 @@ function handleManualBlockClick(blockIdx) {
       block.col = target.col;
       block.visited.add(target.key);
       
-      manualMovesCount++;
+      const useCombined = document.getElementById('combined-moves-toggle').checked;
+      if (!useCombined || lastMovedBlockIdx !== blockIdx) {
+        manualMovesCount++;
+      }
+      lastMovedBlockIdx = blockIdx;
+      
       playbackMode = "Manual";
       updateBlockDOM(blockIdx);
       updateStatus();
@@ -1011,23 +1031,18 @@ function updateStatus() {
     document.getElementById('step-counter').textContent = manualMovesCount + ' moves';
     document.getElementById('progress-bar').style.width = '0%';
   } else {
-    document.getElementById('step-counter').textContent = currentStepIndex + ' / ' + solutionSteps.length;
+    const totalMoves = solutionSteps.length > 0 ? solutionSteps[solutionSteps.length - 1].step : 0;
+    if (currentStepIndex === 0) {
+      document.getElementById('step-counter').textContent = '0 moves';
+    } else {
+      const currentMoves = currentStepIndex > 0 ? solutionSteps[currentStepIndex - 1].step : 0;
+      document.getElementById('step-counter').textContent = currentMoves + ' / ' + totalMoves;
+    }
     const percentage = solutionSteps.length > 0 ? (currentStepIndex / solutionSteps.length) * 100 : 0;
     document.getElementById('progress-bar').style.width = percentage + '%';
   }
 
-  // Mode badge
-  const modeBadge = document.getElementById('playback-mode');
-  if (isManual) {
-    modeBadge.textContent = 'Manual';
-    modeBadge.className = 'status-value badge mode-manual';
-  } else if (isReversing) {
-    modeBadge.textContent = 'Reverse';
-    modeBadge.className = 'status-value badge mode-reverse';
-  } else {
-    modeBadge.textContent = 'Forward';
-    modeBadge.className = 'status-value badge mode-forward';
-  }
+
 
   // Enable/disable solver controls
   document.getElementById('prev-btn').disabled = isManual;
@@ -1055,7 +1070,7 @@ function updateHighlights() {
   const blocks = document.querySelectorAll('.block');
   blocks.forEach(b => b.classList.remove('next-up'));
 
-  if (solutionSteps.length === 0 || autoPlayInterval || playbackMode === "Manual") return;
+  if (solutionSteps.length === 0 || autoPlayInterval || playbackMode === "Manual" || (currentStepIndex === 0 && !isReversing)) return;
 
   let targetIdx = -1;
   if (!isReversing) {
@@ -1094,20 +1109,34 @@ function startAutoPlay() {
   // Clear highlights while autoplaying to avoid distraction
   updateHighlights();
 
+  const autoPlayReversing = isReversing;
+
   autoPlayInterval = setInterval(() => {
-    // If we reach the end and are reversing, or if we reach 0 while reversing
-    if (isReversing && currentStepIndex === 0) {
+    // If we are reversing and reached 0, stop autoplay
+    if (autoPlayReversing && currentStepIndex === 0) {
       stopAutoPlay();
       return;
     }
-    
-    // Auto-advance
+    // If we are playing forward and reached the end, stop autoplay
+    if (!autoPlayReversing && currentStepIndex === solutionSteps.length) {
+      stopAutoPlay();
+      document.getElementById('board-overlay').classList.remove('hidden');
+      document.querySelector('.overlay-title').textContent = 'Completed!';
+      document.querySelector('.overlay-subtitle').textContent = 'Click anywhere to reverse the steps';
+      return;
+    }
+
+    // Execute next step
     triggerNext();
-    
-    // Stop autoplay when it finishes reversing back to start
-    if (!isReversing && currentStepIndex === solutionSteps.length) {
-      // Reached the end, switch to reverse and autoplay will automatically reverse
-      isReversing = true;
+
+    // Check if we just reached the end / start after triggerNext
+    if (autoPlayReversing && currentStepIndex === 0) {
+      stopAutoPlay();
+    } else if (!autoPlayReversing && currentStepIndex === solutionSteps.length) {
+      stopAutoPlay();
+      document.getElementById('board-overlay').classList.remove('hidden');
+      document.querySelector('.overlay-title').textContent = 'Completed!';
+      document.querySelector('.overlay-subtitle').textContent = 'Click anywhere to reverse the steps';
     }
   }, 400); // 400ms per step feels extremely satisfying and smooth
 }
