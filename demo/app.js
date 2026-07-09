@@ -617,6 +617,8 @@ let playbackMode = "Forward"; // "Forward", "Reverse", or "Manual"
 let manualMovesCount = 0;
 let lastMovedBlockIdx = -1;
 let solutionMoveOffset = 0;
+let isCompleted = false;
+let manualMoveHistory = [];
 
 // Direction vectors matching src/klotski.js
 const directions = [
@@ -652,6 +654,7 @@ function initSelector() {
 
 function loadGame(index) {
   stopAutoPlay();
+  isCompleted = false;
   currentGameIndex = parseInt(index);
   const game = hrdGames[currentGameIndex];
 
@@ -692,9 +695,11 @@ function loadGame(index) {
   manualMovesCount = 0;
   lastMovedBlockIdx = -1;
   solutionMoveOffset = 0;
+  manualMoveHistory = [];
   
   renderBoard();
   updateStatus();
+  updateControlButtons();
 }
 
 function renderBoard() {
@@ -777,8 +782,11 @@ function setupEvents() {
     loadGame(currentGameIndex);
   });
 
-  // Overlay click resets mode to reverse
+  // Overlay click continues reverse playback only before the board is locked as complete.
   document.getElementById('board-overlay').addEventListener('click', () => {
+    if (isCompleted) {
+      return;
+    }
     document.getElementById('board-overlay').classList.add('hidden');
     triggerNext(); // Start reversing
   });
@@ -787,17 +795,37 @@ function setupEvents() {
   document.addEventListener('keydown', (e) => {
     if (e.code === 'Space') {
       e.preventDefault();
-      toggleAutoPlay();
+      if (!document.getElementById('play-pause-btn').disabled) {
+        toggleAutoPlay();
+      }
     } else if (e.code === 'ArrowLeft') {
       e.preventDefault();
-      triggerPrev();
+      if (!document.getElementById('prev-btn').disabled) {
+        triggerPrev();
+      }
     } else if (e.code === 'ArrowRight') {
       e.preventDefault();
-      triggerNext();
+      if (!document.getElementById('next-btn').disabled) {
+        triggerNext();
+      }
     }
   });
 
-  setupProgressScrub();
+}
+
+function updateControlButtons() {
+  const prevBtn = document.getElementById('prev-btn');
+  const nextBtn = document.getElementById('next-btn');
+  const autoBtn = document.getElementById('play-pause-btn');
+
+  if (!prevBtn || !nextBtn || !autoBtn) {
+    return;
+  }
+
+  const isAutoPlaying = Boolean(autoPlayInterval);
+  prevBtn.disabled = isAutoPlaying;
+  nextBtn.disabled = isAutoPlaying || isCompleted;
+  autoBtn.disabled = isCompleted;
 }
 
 function handleStepClick(e) {
@@ -815,8 +843,103 @@ function handleStepClick(e) {
   }
 }
 
+function getCurrentMoveCount() {
+  if (playbackMode === "Manual") {
+    return manualMovesCount;
+  }
+
+  const solutionMoves = currentStepIndex > 0 ? solutionSteps[currentStepIndex - 1].step : 0;
+  return solutionMoveOffset + solutionMoves;
+}
+
+function getLastPlaybackBlockIdx() {
+  if (currentStepIndex === 0 || solutionSteps.length === 0) {
+    return -1;
+  }
+
+  return solutionSteps[currentStepIndex - 1].blockIdx;
+}
+
+function prepareManualMove() {
+  if (playbackMode === "Manual") {
+    return;
+  }
+
+  manualMovesCount = getCurrentMoveCount();
+  lastMovedBlockIdx = getLastPlaybackBlockIdx();
+}
+
+function applyManualMove(blockIdx, target) {
+  const block = currentBlocksState[blockIdx];
+  manualMoveHistory.push({
+    blockIdx: blockIdx,
+    row: block.row,
+    col: block.col,
+    visited: new Set(block.visited),
+    manualMovesCount: manualMovesCount,
+    lastMovedBlockIdx: lastMovedBlockIdx,
+    playbackMode: playbackMode,
+    isReversing: isReversing,
+    currentStepIndex: currentStepIndex,
+    solutionMoveOffset: solutionMoveOffset,
+    solutionSteps: solutionSteps.map(step => ({
+      blockIdx: step.blockIdx,
+      dirIdx: step.dirIdx,
+      step: step.step,
+      count: step.count,
+    })),
+  });
+
+  block.row = target.row;
+  block.col = target.col;
+  block.visited.add(target.key);
+
+  const useCombined = document.getElementById('combined-moves-toggle').checked;
+  if (!useCombined || lastMovedBlockIdx !== blockIdx) {
+    manualMovesCount++;
+  }
+  lastMovedBlockIdx = blockIdx;
+
+  playbackMode = "Manual";
+  updateBlockDOM(blockIdx);
+  updateStatus();
+  updateControlButtons();
+  checkManualWin();
+}
+
+function undoManualMove() {
+  const previous = manualMoveHistory.pop();
+  if (!previous) {
+    return false;
+  }
+
+  const block = currentBlocksState[previous.blockIdx];
+  block.row = previous.row;
+  block.col = previous.col;
+  block.visited = new Set(previous.visited);
+  manualMovesCount = previous.manualMovesCount;
+  lastMovedBlockIdx = previous.lastMovedBlockIdx;
+  playbackMode = previous.playbackMode;
+  isReversing = previous.isReversing;
+  currentStepIndex = previous.currentStepIndex;
+  solutionMoveOffset = previous.solutionMoveOffset;
+  solutionSteps = previous.solutionSteps.map(step => ({
+    blockIdx: step.blockIdx,
+    dirIdx: step.dirIdx,
+    step: step.step,
+    count: step.count,
+  }));
+
+  document.getElementById('board-overlay').classList.add('hidden');
+  updateBlockDOM(previous.blockIdx);
+  updateStatus();
+  updateControlButtons();
+  return true;
+}
+
 function handleManualBlockClick(blockIdx) {
   stopAutoPlay();
+  prepareManualMove();
   
   const block = currentBlocksState[blockIdx];
   if (!block.visited) {
@@ -846,20 +969,7 @@ function handleManualBlockClick(blockIdx) {
   if (unvisitedSpots.length > 0) {
     // Move to the first unvisited spot
     const target = unvisitedSpots[0];
-    block.row = target.row;
-    block.col = target.col;
-    block.visited.add(target.key);
-    
-    const useCombined = document.getElementById('combined-moves-toggle').checked;
-    if (!useCombined || lastMovedBlockIdx !== blockIdx) {
-      manualMovesCount++;
-    }
-    lastMovedBlockIdx = blockIdx;
-    
-    playbackMode = "Manual";
-    updateBlockDOM(blockIdx);
-    updateStatus();
-    checkManualWin();
+    applyManualMove(blockIdx, target);
   } else {
     // All available spots are visited -> reset visited flags
     block.visited = new Set([block.row + ',' + block.col]);
@@ -868,20 +978,7 @@ function handleManualBlockClick(blockIdx) {
     const reSearchSpots = validSpots.filter(spot => !block.visited.has(spot.key));
     if (reSearchSpots.length > 0) {
       const target = reSearchSpots[0];
-      block.row = target.row;
-      block.col = target.col;
-      block.visited.add(target.key);
-      
-      const useCombined = document.getElementById('combined-moves-toggle').checked;
-      if (!useCombined || lastMovedBlockIdx !== blockIdx) {
-        manualMovesCount++;
-      }
-      lastMovedBlockIdx = blockIdx;
-      
-      playbackMode = "Manual";
-      updateBlockDOM(blockIdx);
-      updateStatus();
-      checkManualWin();
+      applyManualMove(blockIdx, target);
     } else {
       // Completely blocked -> shake warning animation
       const blockEl = document.getElementById('block-' + blockIdx);
@@ -930,10 +1027,7 @@ function canMoveBlock(blockIdx, dirIdx) {
 function checkManualWin() {
   const caocao = currentBlocksState.find(b => b.shape[0] === 2 && b.shape[1] === 2);
   if (caocao && caocao.row === 3 && caocao.col === 1) {
-    stopAutoPlay();
-    document.getElementById('board-overlay').classList.remove('hidden');
-    document.querySelector('.overlay-title').textContent = 'Solved!';
-    document.querySelector('.overlay-subtitle').textContent = `You solved it in ${manualMovesCount} manual moves!`;
+    completeGame('Solved!', `You solved it in ${manualMovesCount} manual moves!`);
   }
 }
 
@@ -963,6 +1057,10 @@ function solveFromCurrentState() {
 }
 
 function triggerNext() {
+  if (isCompleted) {
+    return;
+  }
+
   if (playbackMode === "Manual") {
     if (!solveFromCurrentState()) return;
   }
@@ -979,9 +1077,7 @@ function triggerNext() {
         isReversing = true;
         // Show completion overlay if not in autoplay
         if (!autoPlayInterval) {
-          document.getElementById('board-overlay').classList.remove('hidden');
-          document.querySelector('.overlay-title').textContent = 'Completed!';
-          document.querySelector('.overlay-subtitle').textContent = 'Click anywhere to reverse the steps';
+          completeGame();
         }
       }
     }
@@ -1001,27 +1097,21 @@ function triggerNext() {
 
 function triggerPrev() {
   if (playbackMode === "Manual") {
-    if (!solveFromCurrentState()) return;
+    undoManualMove();
+    return;
   }
-  if (solutionSteps.length === 0) return;
   stopAutoPlay();
 
-  if (!isReversing) {
-    if (currentStepIndex > 0) {
-      currentStepIndex--;
-      applyStepBackward(solutionSteps[currentStepIndex]);
-      updateStatus();
+  if (currentStepIndex > 0) {
+    currentStepIndex--;
+    applyStepBackward(solutionSteps[currentStepIndex]);
+    updateStatus();
+
+    if (currentStepIndex === 0) {
+      isReversing = false;
     }
   } else {
-    if (currentStepIndex < solutionSteps.length) {
-      applyStepForward(solutionSteps[currentStepIndex]);
-      currentStepIndex++;
-      updateStatus();
-      
-      if (currentStepIndex === solutionSteps.length) {
-        isReversing = true;
-      }
-    }
+    undoManualMove();
   }
 }
 
@@ -1059,13 +1149,8 @@ function updateStatus() {
 
   if (isManual) {
     document.getElementById('step-counter').textContent = manualMovesCount + ' moves';
-    document.getElementById('progress-bar').style.width = '0%';
   } else {
-    const solutionMoves = currentStepIndex > 0 ? solutionSteps[currentStepIndex - 1].step : 0;
-    const currentMoves = solutionMoveOffset + solutionMoves;
-    document.getElementById('step-counter').textContent = currentMoves + ' moves';
-    const percentage = solutionSteps.length > 0 ? (currentStepIndex / solutionSteps.length) * 100 : 0;
-    document.getElementById('progress-bar').style.width = percentage + '%';
+    document.getElementById('step-counter').textContent = getCurrentMoveCount() + ' moves';
   }
 
 
@@ -1106,6 +1191,10 @@ function updateHighlights() {
 }
 
 function toggleAutoPlay() {
+  if (isCompleted) {
+    return;
+  }
+
   if (autoPlayInterval) {
     stopAutoPlay();
   } else {
@@ -1114,6 +1203,10 @@ function toggleAutoPlay() {
 }
 
 function startAutoPlay() {
+  if (isCompleted) {
+    return;
+  }
+
   if (playbackMode === "Manual") {
     if (!solveFromCurrentState()) return;
   }
@@ -1136,10 +1229,7 @@ function startAutoPlay() {
     }
     // If we are playing forward and reached the end, stop autoplay
     if (!autoPlayReversing && currentStepIndex === solutionSteps.length) {
-      stopAutoPlay();
-      document.getElementById('board-overlay').classList.remove('hidden');
-      document.querySelector('.overlay-title').textContent = 'Completed!';
-      document.querySelector('.overlay-subtitle').textContent = 'Click anywhere to reverse the steps';
+      completeGame();
       return;
     }
 
@@ -1150,12 +1240,10 @@ function startAutoPlay() {
     if (autoPlayReversing && currentStepIndex === 0) {
       stopAutoPlay();
     } else if (!autoPlayReversing && currentStepIndex === solutionSteps.length) {
-      stopAutoPlay();
-      document.getElementById('board-overlay').classList.remove('hidden');
-      document.querySelector('.overlay-title').textContent = 'Completed!';
-      document.querySelector('.overlay-subtitle').textContent = 'Click anywhere to reverse the steps';
+      completeGame();
     }
   }, 400); // 400ms per step feels extremely satisfying and smooth
+  updateControlButtons();
 }
 
 function stopAutoPlay() {
@@ -1165,82 +1253,15 @@ function stopAutoPlay() {
   }
   document.getElementById('play-icon').classList.remove('hidden');
   document.getElementById('pause-icon').classList.add('hidden');
+  updateControlButtons();
   updateHighlights();
 }
 
-function setupProgressScrub() {
-  const container = document.getElementById('progress-container');
-  const tooltip = document.getElementById('progress-tooltip');
-
-  container.addEventListener('click', (e) => {
-    if (playbackMode === "Manual" || solutionSteps.length === 0) return;
-    stopAutoPlay();
-
-    const rect = container.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const percentage = Math.max(0, Math.min(1, clickX / rect.width));
-    const targetStep = Math.round(percentage * solutionSteps.length);
-
-    jumpToStep(targetStep);
-  });
-
-  container.addEventListener('mousemove', (e) => {
-    if (playbackMode === "Manual" || solutionSteps.length === 0) {
-      tooltip.classList.add('hidden');
-      return;
-    }
-
-    const rect = container.getBoundingClientRect();
-    const hoverX = e.clientX - rect.left;
-    const percentage = Math.max(0, Math.min(1, hoverX / rect.width));
-    const hoverStep = Math.round(percentage * solutionSteps.length);
-
-    // Calculate actual moves count at this hover step
-    const totalMoves = solutionSteps[solutionSteps.length - 1].step;
-    let hoverMoves = 0;
-    if (hoverStep > 0) {
-      hoverMoves = solutionSteps[hoverStep - 1].step;
-    }
-
-    tooltip.textContent = `Move ${hoverMoves} / ${totalMoves}`;
-    tooltip.style.left = hoverX + 'px';
-    tooltip.classList.remove('hidden');
-  });
-
-  container.addEventListener('mouseleave', () => {
-    tooltip.classList.add('hidden');
-  });
-}
-
-function jumpToStep(targetStep) {
-  if (playbackMode === "Manual" || solutionSteps.length === 0) return;
-
-  // Clamp targetStep
-  targetStep = Math.max(0, Math.min(solutionSteps.length, targetStep));
-
-  // Reset to initial blocks state
-  currentBlocksState = JSON.parse(JSON.stringify(initialBlocks));
-  currentBlocksState.forEach(block => {
-    block.visited = new Set([block.row + ',' + block.col]);
-  });
-
-  // Apply steps forward up to targetStep
-  for (let i = 0; i < targetStep; i++) {
-    const step = solutionSteps[i];
-    const block = currentBlocksState[step.blockIdx];
-    block.row += directions[step.dirIdx].y * step.count;
-    block.col += directions[step.dirIdx].x * step.count;
-  }
-
-  // Update DOM for all blocks
-  for (let i = 0; i < currentBlocksState.length; i++) {
-    updateBlockDOM(i);
-  }
-
-  // Update currentStepIndex and reversing flag
-  currentStepIndex = targetStep;
-  isReversing = (currentStepIndex === solutionSteps.length);
-
-  // Update status panel
-  updateStatus();
+function completeGame(title = 'Completed!', subtitle = 'Reset the board or choose a new game') {
+  isCompleted = true;
+  stopAutoPlay();
+  document.getElementById('board-overlay').classList.remove('hidden');
+  document.querySelector('.overlay-title').textContent = title;
+  document.querySelector('.overlay-subtitle').textContent = subtitle;
+  updateControlButtons();
 }
