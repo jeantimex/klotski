@@ -794,6 +794,8 @@ function setupEvents() {
       triggerNext();
     }
   });
+
+  setupProgressScrub();
 }
 
 function handleStepClick(e) {
@@ -1149,4 +1151,81 @@ function stopAutoPlay() {
   document.getElementById('play-icon').classList.remove('hidden');
   document.getElementById('pause-icon').classList.add('hidden');
   updateHighlights();
+}
+
+function setupProgressScrub() {
+  const container = document.getElementById('progress-container');
+  const tooltip = document.getElementById('progress-tooltip');
+
+  container.addEventListener('click', (e) => {
+    if (playbackMode === "Manual" || solutionSteps.length === 0) return;
+    stopAutoPlay();
+
+    const rect = container.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const percentage = Math.max(0, Math.min(1, clickX / rect.width));
+    const targetStep = Math.round(percentage * solutionSteps.length);
+
+    jumpToStep(targetStep);
+  });
+
+  container.addEventListener('mousemove', (e) => {
+    if (playbackMode === "Manual" || solutionSteps.length === 0) {
+      tooltip.classList.add('hidden');
+      return;
+    }
+
+    const rect = container.getBoundingClientRect();
+    const hoverX = e.clientX - rect.left;
+    const percentage = Math.max(0, Math.min(1, hoverX / rect.width));
+    const hoverStep = Math.round(percentage * solutionSteps.length);
+
+    // Calculate actual moves count at this hover step
+    const totalMoves = solutionSteps[solutionSteps.length - 1].step;
+    let hoverMoves = 0;
+    if (hoverStep > 0) {
+      hoverMoves = solutionSteps[hoverStep - 1].step;
+    }
+
+    tooltip.textContent = `Move ${hoverMoves} / ${totalMoves}`;
+    tooltip.style.left = hoverX + 'px';
+    tooltip.classList.remove('hidden');
+  });
+
+  container.addEventListener('mouseleave', () => {
+    tooltip.classList.add('hidden');
+  });
+}
+
+function jumpToStep(targetStep) {
+  if (playbackMode === "Manual" || solutionSteps.length === 0) return;
+
+  // Clamp targetStep
+  targetStep = Math.max(0, Math.min(solutionSteps.length, targetStep));
+
+  // Reset to initial blocks state
+  currentBlocksState = JSON.parse(JSON.stringify(initialBlocks));
+  currentBlocksState.forEach(block => {
+    block.visited = new Set([block.row + ',' + block.col]);
+  });
+
+  // Apply steps forward up to targetStep
+  for (let i = 0; i < targetStep; i++) {
+    const step = solutionSteps[i];
+    const block = currentBlocksState[step.blockIdx];
+    block.row += directions[step.dirIdx].y * step.count;
+    block.col += directions[step.dirIdx].x * step.count;
+  }
+
+  // Update DOM for all blocks
+  for (let i = 0; i < currentBlocksState.length; i++) {
+    updateBlockDOM(i);
+  }
+
+  // Update currentStepIndex and reversing flag
+  currentStepIndex = targetStep;
+  isReversing = (currentStepIndex === solutionSteps.length);
+
+  // Update status panel
+  updateStatus();
 }
