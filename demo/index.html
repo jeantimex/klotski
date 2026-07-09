@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Klotski Grandmaster — Interactive Solver & Player</title>
+  <meta name="description" content="A premium interactive solver and player for Klotski (華容道) puzzles, featuring 40 classic layouts with Dial's Dijkstra shortest path solver.">
+  
+  <!-- Modern Typography & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Serif+SC:wght@700;900&display=swap" rel="stylesheet">
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <h1 class="glow-text">華容道</h1>
+      <p class="subtitle">Klotski Grandmaster</p>
+      <div class="header-divider"></div>
+    </header>
+
+    <main class="main-content">
+      <!-- Left: Interactive Game Board -->
+      <section class="board-section">
+        <div class="board-wrapper">
+          <div id="game-board" class="game-board">
+            <!-- Grid lines background is handled by CSS -->
+          </div>
+          <div id="board-overlay" class="board-overlay hidden">
+            <div class="overlay-content">
+              <span class="overlay-title">Completed!</span>
+              <span class="overlay-subtitle">Click anywhere to reverse the steps</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right: Control Panel & Status -->
+      <section class="controls-section">
+        <div class="glass-card">
+          <h2>Game Selection</h2>
+          <div class="select-wrapper">
+            <select id="game-selector">
+              <!-- Loaded dynamically -->
+            </select>
+          </div>
+
+          <div class="status-panel">
+            <div class="status-row">
+              <span class="status-label">Layout:</span>
+              <span id="layout-name" class="status-value">—</span>
+            </div>
+            <div class="status-row">
+              <span class="status-label">Min Moves:</span>
+              <span id="min-moves" class="status-value">—</span>
+            </div>
+            <div class="status-row">
+              <span class="status-label">Current Step:</span>
+              <span id="step-counter" class="status-value">0 / 0</span>
+            </div>
+            <div class="status-row">
+              <span class="status-label">Mode:</span>
+              <span id="playback-mode" class="status-value badge mode-forward">Forward</span>
+            </div>
+          </div>
+
+          <div class="progress-container">
+            <div id="progress-bar" class="progress-bar"></div>
+          </div>
+
+          <div class="action-buttons">
+            <button id="prev-btn" class="btn btn-secondary" title="Previous Step (Left Arrow)">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+              Prev
+            </button>
+            <button id="play-pause-btn" class="btn btn-primary" title="Toggle Auto Play (Space)">
+              <svg id="play-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              <svg id="pause-icon" class="hidden" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+              Auto
+            </button>
+            <button id="next-btn" class="btn btn-secondary" title="Next Step (Right Arrow)">
+              Next
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </button>
+          </div>
+
+          <button id="reset-btn" class="btn btn-danger">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg>
+            Reset Board
+          </button>
+        </div>
+
+        <div class="instructions-card">
+          <h3>🎮 How to Play</h3>
+          <ul>
+            <li>Simply <strong>click anywhere inside the board</strong> (or on a block) to advance by one step.</li>
+            <li>Once you reach the final step, the next clicks will automatically **reverse** the board step-by-step.</li>
+            <li>Use the <strong>Auto</strong> button to let the solver play itself.</li>
+            <li>Keyboard shortcuts: <strong>Space</strong> (Auto Play), <strong>Left Arrow</strong> (Prev), <strong>Right Arrow</strong> (Next).</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <p>Powered by Dial's Dijkstra Solver Engine & Zobrist Hashing — 100% Client-Side</p>
+    </footer>
+  </div>
+
+  <!-- Core Solver & App Script -->
+  <script src="./klotski.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
