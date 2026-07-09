@@ -935,8 +935,35 @@ function checkManualWin() {
   }
 }
 
+function solveFromCurrentState() {
+  const blocks = currentBlocksState.map(block => ({
+    shape: block.shape,
+    position: [block.row, block.col]
+  }));
+
+  const useCombined = document.getElementById('combined-moves-toggle').checked;
+  const result = klotski.solve({
+    blocks: blocks,
+    boardSize: [5, 4],
+    escapePoint: [3, 1],
+    singleMove: !useCombined
+  });
+
+  if (result && result.length > 0) {
+    solutionSteps = klotski.mergeSteps(result);
+    currentStepIndex = 0;
+    isReversing = false;
+    playbackMode = "Forward";
+    return true;
+  }
+  return false;
+}
+
 function triggerNext() {
-  if (solutionSteps.length === 0 || playbackMode === "Manual") return;
+  if (playbackMode === "Manual") {
+    if (!solveFromCurrentState()) return;
+  }
+  if (solutionSteps.length === 0) return;
 
   if (!isReversing) {
     if (currentStepIndex < solutionSteps.length) {
@@ -970,7 +997,10 @@ function triggerNext() {
 }
 
 function triggerPrev() {
-  if (solutionSteps.length === 0 || playbackMode === "Manual") return;
+  if (playbackMode === "Manual") {
+    if (!solveFromCurrentState()) return;
+  }
+  if (solutionSteps.length === 0) return;
   stopAutoPlay();
 
   if (!isReversing) {
@@ -1041,18 +1071,6 @@ function updateStatus() {
 
 
 
-  // Enable/disable solver controls
-  document.getElementById('prev-btn').disabled = isManual;
-  document.getElementById('next-btn').disabled = isManual;
-  document.getElementById('play-pause-btn').disabled = isManual;
-  
-  document.getElementById('prev-btn').style.opacity = isManual ? "0.3" : "1";
-  document.getElementById('prev-btn').style.pointerEvents = isManual ? "none" : "auto";
-  document.getElementById('next-btn').style.opacity = isManual ? "0.3" : "1";
-  document.getElementById('next-btn').style.pointerEvents = isManual ? "none" : "auto";
-  document.getElementById('play-pause-btn').style.opacity = isManual ? "0.3" : "1";
-  document.getElementById('play-pause-btn').style.pointerEvents = isManual ? "none" : "auto";
-
   // Hide overlay if we move away from the end state or solve manual win
   if (!isManual && currentStepIndex < solutionSteps.length) {
     document.getElementById('board-overlay').classList.add('hidden');
@@ -1097,8 +1115,11 @@ function toggleAutoPlay() {
 }
 
 function startAutoPlay() {
-  if (solutionSteps.length === 0 || playbackMode === "Manual") return;
-  
+  if (playbackMode === "Manual") {
+    if (!solveFromCurrentState()) return;
+  }
+  if (solutionSteps.length === 0) return;
+
   document.getElementById('board-overlay').classList.add('hidden');
   document.getElementById('play-icon').classList.add('hidden');
   document.getElementById('pause-icon').classList.remove('hidden');
