@@ -1901,8 +1901,52 @@ function stopAutoPlay() {
 function completeGame(title = 'Completed!', subtitle = 'Reset the board or choose a new game') {
   isCompleted = true;
   stopAutoPlay();
-  document.getElementById('board-overlay').classList.remove('hidden');
-  document.querySelector('.overlay-title').textContent = title;
-  document.querySelector('.overlay-subtitle').textContent = subtitle;
-  updateControlButtons();
+
+  // Highlight the Cao Cao block briefly before showing completion
+  const caocaoEl = document.getElementById('block-0');
+  if (caocaoEl) {
+    caocaoEl.classList.add('completed');
+  }
+
+  // Wait a moment to let the player see the final position
+  setTimeout(() => {
+    if (caocaoEl) {
+      caocaoEl.classList.remove('completed');
+    }
+    document.getElementById('board-overlay').classList.remove('hidden');
+    document.querySelector('.overlay-title').textContent = title;
+    document.querySelector('.overlay-subtitle').textContent = subtitle;
+    updateControlButtons();
+
+    // Fire confetti when showing the completed message
+    fireCompletionConfetti();
+  }, 800);
+}
+
+function fireCompletionConfetti() {
+  if (typeof confetti !== 'function') {
+    return;
+  }
+
+  var duration = 2500;
+  var end = Date.now() + duration;
+  var colors = ['#ff416c', '#ff4b2b', '#ffd700', '#8e54e9', '#00c6ff'];
+
+  (function frame() {
+    confetti({
+      particleCount: 5,
+      angle: 90,
+      spread: 160,
+      origin: { x: Math.random(), y: -0.1 },
+      colors: colors,
+      ticks: 200,
+      gravity: 1.5,
+      drift: Math.random() - 0.5,
+      scalar: 1.2
+    });
+
+    if (Date.now() < end) {
+      requestAnimationFrame(frame);
+    }
+  })();
 }
