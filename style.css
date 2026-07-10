@@ -346,6 +346,7 @@ body {
   user-select: none;
   cursor: pointer;
   z-index: 2;
+  touch-action: none;
   /* Multi-stage animation transition */
   transition: 
     left 0.35s cubic-bezier(0.25, 1, 0.5, 1), 
@@ -353,6 +354,10 @@ body {
     transform 0.2s ease, 
     box-shadow 0.2s ease;
   overflow: hidden;
+}
+
+.block.dragging {
+  transition: none !important;
 }
 
 .block::before {

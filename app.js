@@ -623,6 +623,7 @@ let currentGameDefinition = null;
 let isCreateMode = false;
 let createBlocks = [];
 let paletteDrag = null;
+let justDragged = false;
 let createValidationFrame = null;
 let createValidationWorker = null;
 let createValidationWorkerFailed = false;
@@ -867,6 +868,10 @@ function setupEvents() {
 
   // Click on board/blocks to advance/reverse
   document.getElementById('game-board').addEventListener('click', (e) => {
+    if (justDragged) {
+      justDragged = false;
+      return;
+    }
     handleStepClick(e);
   });
 
@@ -943,6 +948,7 @@ function setupEvents() {
     }
   });
 
+  setupBlockDragEvents();
 }
 
 function openHelpDialog() {
@@ -1630,6 +1636,242 @@ function handleManualBlockClick(blockIdx) {
       }
     }
   }
+}
+
+function setupBlockDragEvents() {
+  const board = document.getElementById('game-board');
+  
+  board.addEventListener('pointerdown', (e) => {
+    const blockEl = e.target.closest('.block');
+    if (!blockEl) return;
+    
+    // Disable default touch behaviors like scrolling while dragging
+    blockEl.style.touchAction = 'none';
+    
+    const blockIdx = parseInt(blockEl.id.replace('block-', ''));
+    
+    // Stop autoplay if running
+    if (autoPlayInterval) {
+      stopAutoPlay();
+    }
+    
+    // Pointer capture
+    blockEl.setPointerCapture(e.pointerId);
+    
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const rect = blockEl.getBoundingClientRect();
+    const boardRect = board.getBoundingClientRect();
+    
+    // Query border widths dynamically
+    const computedStyle = window.getComputedStyle(board);
+    const borderLeft = parseFloat(computedStyle.borderLeftWidth) || 0;
+    const borderTop = parseFloat(computedStyle.borderTopWidth) || 0;
+    
+    const initialLeft = rect.left - boardRect.left - borderLeft;
+    const initialTop = rect.top - boardRect.top - borderTop;
+    
+    // Save state for dragging
+    const dragInfo = {
+      blockIdx: blockIdx,
+      startX: startX,
+      startY: startY,
+      grabX: e.clientX - rect.left,
+      grabY: e.clientY - rect.top,
+      borderLeft: borderLeft,
+      borderTop: borderTop,
+      initialLeft: initialLeft,
+      initialTop: initialTop,
+      hasDragged: false,
+      originalRow: currentBlocksState[blockIdx].row,
+      originalCol: currentBlocksState[blockIdx].col,
+      originalVisited: new Set(currentBlocksState[blockIdx].visited),
+    };
+    
+    // Store dragInfo on the element
+    blockEl._dragInfo = dragInfo;
+    blockEl.classList.add('dragging');
+    
+    // If in create mode, make the block semi-transparent while dragging
+    if (isCreateMode) {
+      blockEl.style.opacity = '0.6';
+      blockEl.style.zIndex = '100';
+    }
+  });
+  
+  board.addEventListener('pointermove', (e) => {
+    const blockEl = e.target.closest('.block');
+    if (!blockEl || !blockEl._dragInfo) return;
+    
+    const dragInfo = blockEl._dragInfo;
+    const dx = e.clientX - dragInfo.startX;
+    const dy = e.clientY - dragInfo.startY;
+    
+    // Threshold to start drag (e.g. 10px)
+    if (!dragInfo.hasDragged && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+      dragInfo.hasDragged = true;
+      if (!isCreateMode) {
+        prepareManualMove();
+      }
+    }
+    
+    if (dragInfo.hasDragged) {
+      const boardRect = board.getBoundingClientRect();
+      const desiredLeft = e.clientX - boardRect.left - dragInfo.borderLeft - dragInfo.grabX;
+      const desiredTop = e.clientY - boardRect.top - dragInfo.borderTop - dragInfo.grabY;
+      
+      if (isCreateMode) {
+        // In create mode, drag the block freely under the cursor
+        blockEl.style.left = desiredLeft + 'px';
+        blockEl.style.top = desiredTop + 'px';
+      } else {
+        // In normal play mode, slide the block along fittable slots dynamically
+        const block = currentBlocksState[dragInfo.blockIdx];
+        const currentCellLeft = block.col * CELL_SIZE;
+        const currentCellTop = block.row * CELL_SIZE;
+        
+        const offsetX = desiredLeft - currentCellLeft;
+        const offsetY = desiredTop - currentCellTop;
+        
+        const canRight = canMoveBlock(dragInfo.blockIdx, 1);
+        const canLeft = canMoveBlock(dragInfo.blockIdx, 3);
+        const canDown = canMoveBlock(dragInfo.blockIdx, 0);
+        const canUp = canMoveBlock(dragInfo.blockIdx, 2);
+        
+        const minLeft = canLeft ? currentCellLeft - CELL_SIZE : currentCellLeft;
+        const maxLeft = canRight ? currentCellLeft + CELL_SIZE : currentCellLeft;
+        const minTop = canUp ? currentCellTop - CELL_SIZE : currentCellTop;
+        const maxTop = canDown ? currentCellTop + CELL_SIZE : currentCellTop;
+        
+        let finalLeft = currentCellLeft;
+        let finalTop = currentCellTop;
+        
+        if (Math.abs(offsetX) >= Math.abs(offsetY)) {
+          // Horizontal intent
+          finalLeft = Math.max(minLeft, Math.min(maxLeft, currentCellLeft + offsetX));
+        } else {
+          // Vertical intent
+          finalTop = Math.max(minTop, Math.min(maxTop, currentCellTop + offsetY));
+        }
+        
+        blockEl.style.left = finalLeft + 'px';
+        blockEl.style.top = finalTop + 'px';
+        
+        // Logical coordinate update: only snap to the next cell when we have fully reached it!
+        if (finalLeft === currentCellLeft + CELL_SIZE) {
+          block.col += 1;
+          block.visited.add(block.row + ',' + block.col);
+        } else if (finalLeft === currentCellLeft - CELL_SIZE) {
+          block.col -= 1;
+          block.visited.add(block.row + ',' + block.col);
+        } else if (finalTop === currentCellTop + CELL_SIZE) {
+          block.row += 1;
+          block.visited.add(block.row + ',' + block.col);
+        } else if (finalTop === currentCellTop - CELL_SIZE) {
+          block.row -= 1;
+          block.visited.add(block.row + ',' + block.col);
+        }
+      }
+    }
+  });
+  
+  board.addEventListener('pointerup', (e) => {
+    const blockEl = e.target.closest('.block');
+    if (!blockEl || !blockEl._dragInfo) return;
+    
+    const dragInfo = blockEl._dragInfo;
+    blockEl._dragInfo = null;
+    
+    blockEl.releasePointerCapture(e.pointerId);
+    blockEl.classList.remove('dragging');
+    
+    if (isCreateMode) {
+      blockEl.style.opacity = '';
+      blockEl.style.zIndex = '';
+    }
+    
+    const block = currentBlocksState[dragInfo.blockIdx];
+    
+    if (dragInfo.hasDragged) {
+      justDragged = true;
+      
+      const currentLeft = parseFloat(blockEl.style.left) || (dragInfo.originalCol * CELL_SIZE);
+      const currentTop = parseFloat(blockEl.style.top) || (dragInfo.originalRow * CELL_SIZE);
+      
+      const targetCol = Math.round(currentLeft / CELL_SIZE);
+      const targetRow = Math.round(currentTop / CELL_SIZE);
+      
+      const hasGridMoved = targetRow !== dragInfo.originalRow || targetCol !== dragInfo.originalCol;
+      
+      if (isCreateMode) {
+        // In create mode, place the block at the nearest valid grid cell
+        const shape = currentBlocksState[dragInfo.blockIdx].shape;
+        
+        // Check if we can place the block here (excluding its own index)
+        const canPlace = canPlaceCreateBlock(shape, targetRow, targetCol, dragInfo.blockIdx);
+        
+        if (canPlace) {
+          // Move is valid, update block in editor state
+          createBlocks[dragInfo.blockIdx].row = targetRow;
+          createBlocks[dragInfo.blockIdx].col = targetCol;
+        } else {
+          // Move is invalid, shake the board
+          shakeCreateBoard();
+        }
+        // Sync and re-render
+        syncCreateBlocksToBoard();
+      } else {
+        if (hasGridMoved) {
+          // Commit the drag as a single manual move
+          block.row = dragInfo.originalRow;
+          block.col = dragInfo.originalCol;
+          block.visited = dragInfo.originalVisited;
+          
+          applyManualMove(dragInfo.blockIdx, {
+            row: targetRow,
+            col: targetCol,
+            key: targetRow + ',' + targetCol
+          });
+        } else {
+          // Snap back to starting cell
+          block.row = dragInfo.originalRow;
+          block.col = dragInfo.originalCol;
+          block.visited = dragInfo.originalVisited;
+          updateBlockDOM(dragInfo.blockIdx);
+        }
+      }
+    } else {
+      // It was a pure click! We set justDragged to false so the native click listener
+      // handles it naturally and moves the block exactly 1 space.
+      justDragged = false;
+    }
+  });
+  
+  board.addEventListener('pointercancel', (e) => {
+    const blockEl = e.target.closest('.block');
+    if (!blockEl || !blockEl._dragInfo) return;
+    
+    const dragInfo = blockEl._dragInfo;
+    blockEl._dragInfo = null;
+    
+    blockEl.releasePointerCapture(e.pointerId);
+    blockEl.classList.remove('dragging');
+    
+    if (isCreateMode) {
+      blockEl.style.opacity = '';
+      blockEl.style.zIndex = '';
+      // Reset position in editor mode
+      syncCreateBlocksToBoard();
+    } else {
+      const block = currentBlocksState[dragInfo.blockIdx];
+      if (block) {
+        block.row = dragInfo.originalRow;
+        block.col = dragInfo.originalCol;
+        block.visited = dragInfo.originalVisited;
+      }
+      updateBlockDOM(dragInfo.blockIdx);
+    }
+  });
 }
 
 function canMoveBlock(blockIdx, dirIdx) {
