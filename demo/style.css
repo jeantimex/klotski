@@ -167,13 +167,6 @@ body {
   filter: brightness(1.08);
 }
 
-.block-label {
-  font-family: 'Noto Serif SC', serif;
-  font-weight: 700;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
-  pointer-events: none;
-}
-
 /* Block Types Styling */
 /* 2x2: Cao Cao */
 .block-caocao {
@@ -182,41 +175,24 @@ body {
   border-color: rgba(255, 255, 255, 0.25);
   z-index: 10;
 }
-.block-caocao .block-label {
-  font-size: 2.2rem;
-  letter-spacing: 0.1rem;
-}
-
 /* 2x1: Vertical General */
 .block-vertical {
   background: linear-gradient(135deg, #3a7bd5 0%, #3a6073 100%);
   box-shadow: 0 6px 15px rgba(58, 123, 213, 0.25);
   z-index: 5;
 }
-.block-vertical .block-label {
-  font-size: 1.4rem;
-}
-
 /* 1x2: Horizontal General */
 .block-horizontal {
   background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
   box-shadow: 0 6px 15px rgba(0, 114, 255, 0.25);
   z-index: 5;
 }
-.block-horizontal .block-label {
-  font-size: 1.4rem;
-}
-
 /* 1x1: Soldier */
 .block-soldier {
   background: linear-gradient(135deg, #f5af19 0%, #e65c00 100%);
   box-shadow: 0 4px 10px rgba(230, 92, 0, 0.25);
   z-index: 3;
 }
-.block-soldier .block-label {
-  font-size: 1.1rem;
-}
-
 /* Board Completion Overlay */
 .board-overlay {
   position: absolute;
@@ -280,6 +256,93 @@ body {
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: 0.05rem;
+}
+
+.create-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+#create-game-btn {
+  grid-column: 1 / -1;
+}
+
+.create-palette {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  align-items: end;
+  min-height: 84px;
+}
+
+.palette-piece {
+  justify-self: center;
+  border-radius: 8px;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Noto Serif SC', serif;
+  font-weight: 700;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.24);
+}
+
+.palette-piece.disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+  filter: grayscale(0.6);
+}
+
+.palette-caocao {
+  width: 58px;
+  height: 58px;
+  background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+}
+
+.palette-vertical {
+  width: 34px;
+  height: 68px;
+  background: linear-gradient(135deg, #3a7bd5 0%, #3a6073 100%);
+}
+
+.palette-horizontal {
+  width: 68px;
+  height: 34px;
+  background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+}
+
+.palette-soldier {
+  width: 34px;
+  height: 34px;
+  background: linear-gradient(135deg, #f5af19 0%, #e65c00 100%);
+}
+
+.palette-ghost {
+  position: fixed;
+  z-index: 100;
+  pointer-events: none;
+  border-radius: 10px;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  background: rgba(142, 84, 233, 0.2);
+  backdrop-filter: blur(8px);
+  color: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.game-board.create-mode {
+  cursor: crosshair;
 }
 
 /* Beautiful custom select */

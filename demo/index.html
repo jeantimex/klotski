@@ -49,6 +49,25 @@
             </select>
           </div>
 
+          <div class="create-actions">
+            <button id="create-game-btn" class="btn btn-secondary">
+              Create Game
+            </button>
+            <button id="finish-create-btn" class="btn btn-primary hidden" disabled>
+              Finish
+            </button>
+            <button id="cancel-create-btn" class="btn btn-secondary hidden">
+              Cancel
+            </button>
+          </div>
+
+          <div id="create-palette" class="create-palette hidden">
+            <div class="palette-piece palette-caocao" data-shape="2,2"></div>
+            <div class="palette-piece palette-vertical" data-shape="2,1"></div>
+            <div class="palette-piece palette-horizontal" data-shape="1,2"></div>
+            <div class="palette-piece palette-soldier" data-shape="1,1"></div>
+          </div>
+
           <div class="toggle-container">
             <label class="switch">
               <input type="checkbox" id="combined-moves-toggle" checked>
@@ -97,8 +116,8 @@
         <div class="instructions-card">
           <h3>🎮 How to Play</h3>
           <ul>
-            <li>Simply <strong>click anywhere inside the board</strong> (or on a block) to advance by one step.</li>
-            <li>Once you reach the final step, the next clicks will automatically **reverse** the board step-by-step.</li>
+            <li>Click a block to move it manually, or use <strong>Next</strong> to follow the solver.</li>
+            <li>Use <strong>Create Game</strong> to place custom blocks, then finish to solve that layout.</li>
             <li>Use the <strong>Auto</strong> button to let the solver play itself.</li>
             <li>Keyboard shortcuts: <strong>Space</strong> (Auto Play), <strong>Left Arrow</strong> (Prev), <strong>Right Arrow</strong> (Next).</li>
           </ul>

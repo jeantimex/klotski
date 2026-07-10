@@ -619,6 +619,10 @@ let lastMovedBlockIdx = -1;
 let solutionMoveOffset = 0;
 let isCompleted = false;
 let manualMoveHistory = [];
+let currentGameDefinition = null;
+let isCreateMode = false;
+let createBlocks = [];
+let paletteDrag = null;
 
 // Direction vectors matching src/klotski.js
 const directions = [
@@ -629,10 +633,8 @@ const directions = [
 ];
 
 const CELL_SIZE = 80;
-
-// Chinese names for blocks to add a traditional premium touch
-const VERTICAL_NAMES = ["黄忠", "张飞", "赵云", "马超", "黄忠"];
-const HORIZONTAL_NAMES = ["关羽", "赵云", "马超", "黄忠", "关羽"];
+const BOARD_ROWS = 5;
+const BOARD_COLS = 4;
 
 // Init
 window.addEventListener('DOMContentLoaded', () => {
@@ -653,16 +655,38 @@ function initSelector() {
 }
 
 function loadGame(index) {
-  stopAutoPlay();
-  isCompleted = false;
+  exitCreateMode();
   currentGameIndex = parseInt(index);
   const game = hrdGames[currentGameIndex];
+  currentGameDefinition = {
+    name: game.name,
+    blocks: game.blocks.map(block => ({
+      shape: block.shape.slice(0),
+      position: block.position.slice(0),
+      directions: block.directions ? block.directions.slice(0) : undefined,
+    })),
+  };
+
+  loadGameDefinition(currentGameDefinition);
+}
+
+function loadGameDefinition(game) {
+  stopAutoPlay();
+  isCompleted = false;
+  currentGameDefinition = {
+    name: game.name,
+    blocks: game.blocks.map(block => ({
+      shape: block.shape.slice(0),
+      position: block.position.slice(0),
+      directions: block.directions ? block.directions.slice(0) : undefined,
+    })),
+  };
 
   document.getElementById('layout-name').textContent = game.name;
   
   // Clone initial blocks and map position to row/col
   initialBlocks = game.blocks.map(block => ({
-    shape: block.shape,
+    shape: block.shape.slice(0),
     row: block.position[0],
     col: block.position[1]
   }));
@@ -675,7 +699,7 @@ function loadGame(index) {
   const useCombined = document.getElementById('combined-moves-toggle').checked;
   const result = klotski.solve({
     blocks: game.blocks,
-    boardSize: [5, 4],
+    boardSize: [BOARD_ROWS, BOARD_COLS],
     escapePoint: [3, 1],
     singleMove: !useCombined
   });
@@ -705,9 +729,6 @@ function loadGame(index) {
 function renderBoard() {
   const board = document.getElementById('game-board');
   board.innerHTML = '';
-  
-  let vIndex = 0;
-  let hIndex = 0;
 
   currentBlocksState.forEach((block, index) => {
     const div = document.createElement('div');
@@ -720,27 +741,17 @@ function renderBoard() {
     div.style.left = (block.col * CELL_SIZE) + 'px';
     div.style.top = (block.row * CELL_SIZE) + 'px';
 
-    // Type styling and label
-    const label = document.createElement('span');
-    label.className = 'block-label';
-    
+    // Type styling
     if (block.shape[0] === 2 && block.shape[1] === 2) {
       div.classList.add('block-caocao');
-      label.textContent = '曹操';
     } else if (block.shape[0] === 2 && block.shape[1] === 1) {
       div.classList.add('block-vertical');
-      label.textContent = VERTICAL_NAMES[vIndex % VERTICAL_NAMES.length];
-      vIndex++;
     } else if (block.shape[0] === 1 && block.shape[1] === 2) {
       div.classList.add('block-horizontal');
-      label.textContent = HORIZONTAL_NAMES[hIndex % HORIZONTAL_NAMES.length];
-      hIndex++;
     } else if (block.shape[0] === 1 && block.shape[1] === 1) {
       div.classList.add('block-soldier');
-      label.textContent = '兵';
     }
 
-    div.appendChild(label);
     board.appendChild(div);
   });
 }
@@ -753,8 +764,27 @@ function setupEvents() {
 
   // Combined Moves Toggler
   document.getElementById('combined-moves-toggle').addEventListener('change', () => {
-    loadGame(currentGameIndex);
+    if (!isCreateMode && currentGameDefinition) {
+      loadGameDefinition(currentGameDefinition);
+    }
   });
+
+  document.getElementById('create-game-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    startCreateMode();
+  });
+
+  document.getElementById('finish-create-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    finishCreateMode();
+  });
+
+  document.getElementById('cancel-create-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    cancelCreateMode();
+  });
+
+  setupCreatePaletteEvents();
 
   // Click on board/blocks to advance/reverse
   document.getElementById('game-board').addEventListener('click', (e) => {
@@ -779,7 +809,11 @@ function setupEvents() {
 
   document.getElementById('reset-btn').addEventListener('click', (e) => {
     e.stopPropagation();
-    loadGame(currentGameIndex);
+    if (isCreateMode) {
+      startCreateMode();
+    } else if (currentGameDefinition) {
+      loadGameDefinition(currentGameDefinition);
+    }
   });
 
   // Overlay click continues reverse playback only before the board is locked as complete.
@@ -813,12 +847,251 @@ function setupEvents() {
 
 }
 
+function setupCreatePaletteEvents() {
+  document.querySelectorAll('.palette-piece').forEach(piece => {
+    piece.addEventListener('pointerdown', handlePalettePointerDown);
+  });
+}
+
+function startCreateMode() {
+  stopAutoPlay();
+  isCreateMode = true;
+  isCompleted = false;
+  createBlocks = [];
+  currentBlocksState = [];
+  solutionSteps = [];
+  currentStepIndex = 0;
+  isReversing = false;
+  playbackMode = "Forward";
+  manualMovesCount = 0;
+  lastMovedBlockIdx = -1;
+  solutionMoveOffset = 0;
+  manualMoveHistory = [];
+
+  document.getElementById('layout-name').textContent = 'Custom Setup';
+  document.getElementById('min-moves').textContent = '—';
+  document.getElementById('step-counter').textContent = '0 moves';
+  document.getElementById('board-overlay').classList.add('hidden');
+  document.getElementById('game-board').classList.add('create-mode');
+  renderBoard();
+  updateCreateControls();
+  updateControlButtons();
+}
+
+function exitCreateMode() {
+  isCreateMode = false;
+  createBlocks = [];
+  cleanupPaletteDrag();
+  document.getElementById('game-board').classList.remove('create-mode');
+  updateCreateControls();
+}
+
+function cancelCreateMode() {
+  exitCreateMode();
+  if (currentGameDefinition) {
+    loadGameDefinition(currentGameDefinition);
+  } else {
+    loadGame(0);
+  }
+}
+
+function finishCreateMode() {
+  if (!canFinishCreateMode()) {
+    shakeCreateBoard();
+    return;
+  }
+
+  const caocaoIndex = createBlocks.findIndex(block => block.shape[0] === 2 && block.shape[1] === 2);
+  const orderedBlocks = [
+    createBlocks[caocaoIndex],
+    ...createBlocks.filter((_, index) => index !== caocaoIndex),
+  ].map(block => ({
+    shape: block.shape.slice(0),
+    position: [block.row, block.col],
+  }));
+
+  exitCreateMode();
+  loadGameDefinition({
+    name: 'Custom Game',
+    blocks: orderedBlocks,
+  });
+}
+
+function updateCreateControls() {
+  const createBtn = document.getElementById('create-game-btn');
+  const finishBtn = document.getElementById('finish-create-btn');
+  const cancelBtn = document.getElementById('cancel-create-btn');
+  const palette = document.getElementById('create-palette');
+  const selector = document.getElementById('game-selector');
+
+  createBtn.classList.toggle('hidden', isCreateMode);
+  finishBtn.classList.toggle('hidden', !isCreateMode);
+  cancelBtn.classList.toggle('hidden', !isCreateMode);
+  palette.classList.toggle('hidden', !isCreateMode);
+  selector.disabled = isCreateMode;
+  finishBtn.disabled = !canFinishCreateMode();
+
+  const hasCaocao = createBlocks.some(block => block.shape[0] === 2 && block.shape[1] === 2);
+  document.querySelectorAll('.palette-piece').forEach(piece => {
+    piece.classList.toggle('disabled', piece.dataset.shape === '2,2' && hasCaocao);
+  });
+}
+
+function canFinishCreateMode() {
+  return createBlocks.some(block => block.shape[0] === 2 && block.shape[1] === 2);
+}
+
+function handlePalettePointerDown(e) {
+  if (!isCreateMode || e.button !== 0 || e.currentTarget.classList.contains('disabled')) {
+    return;
+  }
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  const shape = e.currentTarget.dataset.shape.split(',').map(Number);
+  paletteDrag = {
+    shape: shape,
+    ghost: createPaletteGhost(shape),
+  };
+
+  updatePaletteGhostPosition(e.clientX, e.clientY);
+  document.addEventListener('pointermove', handlePalettePointerMove);
+  document.addEventListener('pointerup', handlePalettePointerUp);
+  document.addEventListener('pointercancel', cancelPaletteDrag);
+}
+
+function handlePalettePointerMove(e) {
+  if (!paletteDrag) {
+    return;
+  }
+
+  e.preventDefault();
+  updatePaletteGhostPosition(e.clientX, e.clientY);
+}
+
+function handlePalettePointerUp(e) {
+  if (!paletteDrag) {
+    return;
+  }
+
+  const placement = getCreatePlacement(e.clientX, e.clientY, paletteDrag.shape);
+  const shape = paletteDrag.shape.slice(0);
+  cleanupPaletteDrag();
+
+  if (!placement || !canPlaceCreateBlock(shape, placement.row, placement.col)) {
+    shakeCreateBoard();
+    return;
+  }
+
+  createBlocks.push({
+    shape: shape,
+    row: placement.row,
+    col: placement.col,
+  });
+  syncCreateBlocksToBoard();
+}
+
+function cancelPaletteDrag() {
+  cleanupPaletteDrag();
+}
+
+function cleanupPaletteDrag() {
+  if (paletteDrag && paletteDrag.ghost) {
+    paletteDrag.ghost.remove();
+  }
+  paletteDrag = null;
+  document.removeEventListener('pointermove', handlePalettePointerMove);
+  document.removeEventListener('pointerup', handlePalettePointerUp);
+  document.removeEventListener('pointercancel', cancelPaletteDrag);
+}
+
+function createPaletteGhost(shape) {
+  const ghost = document.createElement('div');
+  ghost.className = 'palette-ghost';
+  ghost.style.width = (shape[1] * CELL_SIZE) + 'px';
+  ghost.style.height = (shape[0] * CELL_SIZE) + 'px';
+  document.body.appendChild(ghost);
+  return ghost;
+}
+
+function updatePaletteGhostPosition(clientX, clientY) {
+  const width = paletteDrag.shape[1] * CELL_SIZE;
+  const height = paletteDrag.shape[0] * CELL_SIZE;
+  paletteDrag.ghost.style.left = (clientX - width / 2) + 'px';
+  paletteDrag.ghost.style.top = (clientY - height / 2) + 'px';
+}
+
+function getCreatePlacement(clientX, clientY, shape) {
+  const board = document.getElementById('game-board');
+  const rect = board.getBoundingClientRect();
+  const left = clientX - rect.left - (shape[1] * CELL_SIZE) / 2;
+  const top = clientY - rect.top - (shape[0] * CELL_SIZE) / 2;
+  const col = Math.round(left / CELL_SIZE);
+  const row = Math.round(top / CELL_SIZE);
+
+  if (row < 0 || col < 0 || row + shape[0] > BOARD_ROWS || col + shape[1] > BOARD_COLS) {
+    return null;
+  }
+
+  return { row: row, col: col };
+}
+
+function canPlaceCreateBlock(shape, row, col, ignoreIndex) {
+  if (row < 0 || col < 0 || row + shape[0] > BOARD_ROWS || col + shape[1] > BOARD_COLS) {
+    return false;
+  }
+
+  return createBlocks.every((block, index) => {
+    if (index === ignoreIndex) {
+      return true;
+    }
+
+    return (
+      row + shape[0] <= block.row ||
+      row >= block.row + block.shape[0] ||
+      col + shape[1] <= block.col ||
+      col >= block.col + block.shape[1]
+    );
+  });
+}
+
+function syncCreateBlocksToBoard() {
+  currentBlocksState = createBlocks.map(block => ({
+    shape: block.shape.slice(0),
+    row: block.row,
+    col: block.col,
+    visited: new Set([block.row + ',' + block.col]),
+  }));
+  renderBoard();
+  updateCreateControls();
+  updateControlButtons();
+}
+
+function removeCreateBlock(index) {
+  createBlocks.splice(index, 1);
+  syncCreateBlocksToBoard();
+}
+
+function shakeCreateBoard() {
+  const board = document.getElementById('game-board');
+  board.classList.add('shake');
+  setTimeout(() => board.classList.remove('shake'), 300);
+}
+
 function updateControlButtons() {
   const prevBtn = document.getElementById('prev-btn');
   const nextBtn = document.getElementById('next-btn');
   const autoBtn = document.getElementById('play-pause-btn');
 
   if (!prevBtn || !nextBtn || !autoBtn) {
+    return;
+  }
+
+  if (isCreateMode) {
+    prevBtn.disabled = true;
+    nextBtn.disabled = true;
+    autoBtn.disabled = true;
     return;
   }
 
@@ -847,6 +1120,15 @@ function hasPreviousState() {
 }
 
 function handleStepClick(e) {
+  if (isCreateMode) {
+    const blockEl = e.target.closest('.block');
+    if (blockEl) {
+      e.stopPropagation();
+      removeCreateBlock(parseInt(blockEl.id.replace('block-', '')));
+    }
+    return;
+  }
+
   if (autoPlayInterval) {
     stopAutoPlay();
     return;
