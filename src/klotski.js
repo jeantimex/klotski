@@ -283,6 +283,7 @@
         var stateStep = gameState.step;
         var stateBoard = gameState.board;
         var stateBlocks = gameState.blocks;
+        var bw = HRD_BOARD_WIDTH;
 
         for (var i = 0; i < numBlocks; i++) {
           var block = stateBlocks[i];
@@ -292,30 +293,47 @@
           var shapeCols = shape[1];
           var blockRow = block.row;
           var blockCol = block.col;
+          var blockVal = i + 1;
 
           for (var dirIdx = 0; dirIdx < 4; dirIdx++) {
-            if (blockDirections && blockDirections.indexOf(dirIdx) === -1) {
+            if (blockDirections !== null && blockDirections.indexOf(dirIdx) === -1) {
               continue;
             }
 
-            var dirX = DIR_X[dirIdx];
-            var dirY = DIR_Y[dirIdx];
             var canMove = true;
 
-            if (dirY !== 0) {
-              var checkRow = dirY > 0 ? blockRow + shapeRows + 1 : blockRow;
-              for (var j = 1; j <= shapeCols; j++) {
-                var val = stateBoard[checkRow * HRD_BOARD_WIDTH + blockCol + j];
-                if (val !== BOARD_CELL_EMPTY && val !== i + 1) {
+            if (dirIdx === 0) {
+              var checkBase = (blockRow + shapeRows + 1) * bw + blockCol + 1;
+              for (var j = 0; j < shapeCols; j++) {
+                var val = stateBoard[checkBase + j];
+                if (val !== 0 && val !== blockVal) {
+                  canMove = false;
+                  break;
+                }
+              }
+            } else if (dirIdx === 2) {
+              var checkBase = blockRow * bw + blockCol + 1;
+              for (var j = 0; j < shapeCols; j++) {
+                var val = stateBoard[checkBase + j];
+                if (val !== 0 && val !== blockVal) {
+                  canMove = false;
+                  break;
+                }
+              }
+            } else if (dirIdx === 1) {
+              var checkCol = blockCol + shapeCols + 1;
+              for (var k = 1; k <= shapeRows; k++) {
+                var val = stateBoard[(blockRow + k) * bw + checkCol];
+                if (val !== 0 && val !== blockVal) {
                   canMove = false;
                   break;
                 }
               }
             } else {
-              var checkCol = dirX > 0 ? blockCol + shapeCols + 1 : blockCol;
+              var checkCol = blockCol;
               for (var k = 1; k <= shapeRows; k++) {
-                var val = stateBoard[(blockRow + k) * HRD_BOARD_WIDTH + checkCol];
-                if (val !== BOARD_CELL_EMPTY && val !== i + 1) {
+                var val = stateBoard[(blockRow + k) * bw + checkCol];
+                if (val !== 0 && val !== blockVal) {
                   canMove = false;
                   break;
                 }
@@ -345,34 +363,54 @@
             }
 
             var newBoard = stateBoard.slice(0);
-            var newRow = blockRow + dirY;
-            var newCol = blockCol + dirX;
+            var newRow = blockRow + (dirIdx === 0 ? 1 : dirIdx === 2 ? -1 : 0);
+            var newCol = blockCol + (dirIdx === 1 ? 1 : dirIdx === 3 ? -1 : 0);
+            var oldBase = (blockRow + 1) * bw + blockCol + 1;
+            var newBase = (newRow + 1) * bw + newCol + 1;
 
-            for (var ri = 1; ri <= shapeRows; ri++) {
-              for (var ci = 1; ci <= shapeCols; ci++) {
-                newBoard[(blockRow + ri) * HRD_BOARD_WIDTH + blockCol + ci] = BOARD_CELL_EMPTY;
+            if (shapeRows === 2 && shapeCols === 2) {
+              newBoard[oldBase] = 0;
+              newBoard[oldBase + 1] = 0;
+              newBoard[oldBase + bw] = 0;
+              newBoard[oldBase + bw + 1] = 0;
+              newBoard[newBase] = blockVal;
+              newBoard[newBase + 1] = blockVal;
+              newBoard[newBase + bw] = blockVal;
+              newBoard[newBase + bw + 1] = blockVal;
+            } else if (shapeRows === 2 && shapeCols === 1) {
+              newBoard[oldBase] = 0;
+              newBoard[oldBase + bw] = 0;
+              newBoard[newBase] = blockVal;
+              newBoard[newBase + bw] = blockVal;
+            } else if (shapeRows === 1 && shapeCols === 2) {
+              newBoard[oldBase] = 0;
+              newBoard[oldBase + 1] = 0;
+              newBoard[newBase] = blockVal;
+              newBoard[newBase + 1] = blockVal;
+            } else if (shapeRows === 1 && shapeCols === 1) {
+              newBoard[oldBase] = 0;
+              newBoard[newBase] = blockVal;
+            } else {
+              for (var ri = 0; ri < shapeRows; ri++) {
+                for (var ci = 0; ci < shapeCols; ci++) {
+                  newBoard[oldBase + ri * bw + ci] = 0;
+                }
               }
-            }
-            for (var ri = 1; ri <= shapeRows; ri++) {
-              for (var ci = 1; ci <= shapeCols; ci++) {
-                newBoard[(newRow + ri) * HRD_BOARD_WIDTH + newCol + ci] = i + 1;
+              for (var ri = 0; ri < shapeRows; ri++) {
+                for (var ci = 0; ci < shapeCols; ci++) {
+                  newBoard[newBase + ri * bw + ci] = blockVal;
+                }
               }
             }
 
-            var newBlocks = new Array(numBlocks);
-            for (var bi = 0; bi < numBlocks; bi++) {
-              if (bi === i) {
-                newBlocks[bi] = {
-                  shape: shape,
-                  directions: blockDirections,
-                  type: block.type,
-                  row: newRow,
-                  col: newCol,
-                };
-              } else {
-                newBlocks[bi] = stateBlocks[bi];
-              }
-            }
+            var newBlocks = stateBlocks.slice(0);
+            newBlocks[i] = {
+              shape: shape,
+              directions: blockDirections,
+              type: block.type,
+              row: newRow,
+              col: newCol,
+            };
 
             var newState = {
               board: newBoard,
