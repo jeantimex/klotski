@@ -662,23 +662,21 @@ function initThemeControls() {
   const savedTheme = getStoredColorScheme();
   setColorScheme(COLOR_SCHEMES.includes(savedTheme) ? savedTheme : 'system');
 
-  document.querySelectorAll('.theme-option').forEach(button => {
-    button.addEventListener('click', () => {
-      setColorScheme(button.dataset.themeChoice);
-    });
-  });
+  document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+}
+
+function toggleTheme() {
+  const current = document.documentElement.dataset.theme;
+  const isDark = current === 'dark' ||
+    (current === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+  setColorScheme(isDark ? 'light' : 'dark');
 }
 
 function setColorScheme(theme) {
   const nextTheme = COLOR_SCHEMES.includes(theme) ? theme : 'system';
   document.documentElement.dataset.theme = nextTheme;
   storeColorScheme(nextTheme);
-
-  document.querySelectorAll('.theme-option').forEach(button => {
-    const isActive = button.dataset.themeChoice === nextTheme;
-    button.classList.toggle('active', isActive);
-    button.setAttribute('aria-pressed', String(isActive));
-  });
 }
 
 function getStoredColorScheme() {

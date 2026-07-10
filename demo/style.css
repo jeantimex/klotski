@@ -496,37 +496,85 @@ body {
   grid-column: 1 / -1;
 }
 
-.theme-control {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 4px;
-  padding: 4px;
+/* Theme Toggle Button */
+.theme-toggle {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 100;
+  width: 44px;
+  height: 44px;
   border: 1px solid var(--glass-border);
-  border-radius: 10px;
-  background: var(--panel-bg);
-}
-
-.theme-option {
-  border: none;
-  border-radius: 7px;
-  padding: 9px 8px;
-  background: transparent;
-  color: var(--text-secondary);
-  font: inherit;
-  font-size: 0.85rem;
-  font-weight: 600;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.theme-option:hover {
-  color: var(--text-primary);
+.theme-toggle:hover {
   background: var(--control-hover-bg);
+  transform: scale(1.05);
 }
 
-.theme-option.active {
-  color: #ffffff;
-  background: var(--accent-color);
-  box-shadow: 0 3px 10px var(--accent-color-glow);
+.theme-toggle:active {
+  transform: scale(0.95);
+}
+
+.theme-icon {
+  width: 22px;
+  height: 22px;
+  color: var(--text-primary);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.sun-icon {
+  position: absolute;
+}
+
+.moon-icon {
+  position: absolute;
+}
+
+/* Light mode: show sun, hide moon */
+:root[data-theme='light'] .sun-icon,
+:root[data-theme='system'] .sun-icon {
+  opacity: 1;
+  transform: rotate(0deg);
+}
+
+:root[data-theme='light'] .moon-icon,
+:root[data-theme='system'] .moon-icon {
+  opacity: 0;
+  transform: rotate(-90deg);
+}
+
+/* Dark mode: show moon, hide sun */
+:root[data-theme='dark'] .sun-icon {
+  opacity: 0;
+  transform: rotate(90deg);
+}
+
+:root[data-theme='dark'] .moon-icon {
+  opacity: 1;
+  transform: rotate(0deg);
+}
+
+/* System preference dark: show moon */
+@media (prefers-color-scheme: dark) {
+  :root[data-theme='system'] .sun-icon {
+    opacity: 0;
+    transform: rotate(90deg);
+  }
+
+  :root[data-theme='system'] .moon-icon {
+    opacity: 1;
+    transform: rotate(0deg);
+  }
 }
 
 .create-palette {
