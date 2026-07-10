@@ -432,6 +432,41 @@ body {
   letter-spacing: 0.05rem;
 }
 
+.create-description {
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.create-validation-message {
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 75, 43, 0.3);
+  border-radius: 10px;
+  background: rgba(255, 75, 43, 0.08);
+  color: #ff9e8d;
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.create-min-moves {
+  padding: 10px 12px;
+  border: 1px solid rgba(142, 84, 233, 0.22);
+  border-radius: 10px;
+  background: rgba(142, 84, 233, 0.08);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.glass-card.create-mode-active > :not(h2):not(.create-description):not(.create-palette):not(.create-validation-message):not(.create-min-moves):not(.create-actions) {
+  display: none;
+}
+
+.glass-card.create-mode-active {
+  gap: 16px;
+}
+
 .create-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -852,10 +887,7 @@ body {
 
 /* Custom Toggle Switch */
 .toggle-container {
-  display: flex;
-  align-items: center;
   gap: 12px;
-  margin-top: 5px;
 }
 
 .toggle-label {

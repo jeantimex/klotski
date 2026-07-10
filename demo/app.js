@@ -623,6 +623,18 @@ let currentGameDefinition = null;
 let isCreateMode = false;
 let createBlocks = [];
 let paletteDrag = null;
+let createValidationFrame = null;
+let createValidationWorker = null;
+let createValidationWorkerFailed = false;
+let createValidationRequestId = 0;
+const createValidationCache = new Map();
+let createValidationState = {
+  signature: '',
+  canFinish: false,
+  message: '',
+  minMoves: null,
+  pending: false,
+};
 
 // Direction vectors matching src/klotski.js
 const directions = [
@@ -724,8 +736,6 @@ function loadGameDefinition(game) {
     })),
   };
 
-  document.getElementById('layout-name').textContent = game.name;
-  
   // Clone initial blocks and map position to row/col
   initialBlocks = game.blocks.map(block => ({
     shape: block.shape.slice(0),
@@ -980,20 +990,23 @@ function startCreateMode() {
   lastMovedBlockIdx = -1;
   solutionMoveOffset = 0;
   manualMoveHistory = [];
+  resetCreateValidationState();
 
-  document.getElementById('layout-name').textContent = 'Custom Setup';
   document.getElementById('min-moves').textContent = '—';
   document.getElementById('step-counter').textContent = '0 moves';
   document.getElementById('board-overlay').classList.add('hidden');
   document.getElementById('game-board').classList.add('create-mode');
   renderBoard();
   updateCreateControls();
+  scheduleCreateSolvabilityCheck();
   updateControlButtons();
 }
 
 function exitCreateMode() {
   isCreateMode = false;
   createBlocks = [];
+  cancelCreateSolvabilityCheck();
+  resetCreateValidationState();
   cleanupPaletteDrag();
   document.getElementById('game-board').classList.remove('create-mode');
   updateCreateControls();
@@ -1014,14 +1027,7 @@ function finishCreateMode() {
     return;
   }
 
-  const caocaoIndex = createBlocks.findIndex(block => block.shape[0] === 2 && block.shape[1] === 2);
-  const orderedBlocks = [
-    createBlocks[caocaoIndex],
-    ...createBlocks.filter((_, index) => index !== caocaoIndex),
-  ].map(block => ({
-    shape: block.shape.slice(0),
-    position: [block.row, block.col],
-  }));
+  const orderedBlocks = getOrderedCreateBlocks();
 
   exitCreateMode();
   loadGameDefinition({
@@ -1036,11 +1042,26 @@ function updateCreateControls() {
   const cancelBtn = document.getElementById('cancel-create-btn');
   const palette = document.getElementById('create-palette');
   const selector = document.getElementById('game-selector');
+  const panelTitle = document.getElementById('panel-title');
+  const createDescription = document.getElementById('create-description');
+  const validationMessage = document.getElementById('create-validation-message');
+  const createMinMoves = document.getElementById('create-min-moves');
+  const controlsCard = createBtn.closest('.glass-card');
+  const validation = createValidationState;
 
+  if (controlsCard) {
+    controlsCard.classList.toggle('create-mode-active', isCreateMode);
+  }
+  panelTitle.textContent = isCreateMode ? 'Create Game' : 'Game Selection';
+  createDescription.classList.toggle('hidden', !isCreateMode);
   createBtn.classList.toggle('hidden', isCreateMode);
   finishBtn.classList.toggle('hidden', !isCreateMode);
   cancelBtn.classList.toggle('hidden', !isCreateMode);
   palette.classList.toggle('hidden', !isCreateMode);
+  validationMessage.textContent = validation.message;
+  validationMessage.classList.toggle('hidden', !isCreateMode || !validation.message);
+  createMinMoves.textContent = validation.minMoves === null ? '' : 'Min Moves: ' + validation.minMoves + ' moves';
+  createMinMoves.classList.toggle('hidden', !isCreateMode || validation.minMoves === null);
   selector.disabled = isCreateMode;
   finishBtn.disabled = !canFinishCreateMode();
 
@@ -1051,7 +1072,200 @@ function updateCreateControls() {
 }
 
 function canFinishCreateMode() {
-  return createBlocks.some(block => block.shape[0] === 2 && block.shape[1] === 2);
+  return (
+    isCreateMode &&
+    createValidationState.canFinish &&
+    !createValidationState.pending &&
+    createValidationState.signature === getCreateBlocksSignature()
+  );
+}
+
+function scheduleCreateSolvabilityCheck() {
+  if (!isCreateMode) {
+    return;
+  }
+
+  cancelCreateSolvabilityCheck();
+
+  const signature = getCreateBlocksSignature();
+  if (createValidationCache.has(signature)) {
+    createValidationState = {
+      signature: signature,
+      ...createValidationCache.get(signature),
+      pending: false,
+    };
+    updateCreateControls();
+    return;
+  }
+
+  if (!getOrderedCreateBlocks()) {
+    createValidationState = {
+      signature: signature,
+      canFinish: false,
+      message: '',
+      minMoves: null,
+      pending: false,
+    };
+    updateCreateControls();
+    return;
+  }
+
+  createValidationState = {
+    signature: signature,
+    canFinish: false,
+    message: 'Checking solvability...',
+    minMoves: null,
+    pending: true,
+  };
+  updateCreateControls();
+
+  createValidationFrame = requestAnimationFrame(() => {
+    createValidationFrame = requestAnimationFrame(() => {
+      createValidationFrame = null;
+      requestCreateSolvabilityCheck(signature);
+    });
+  });
+}
+
+function cancelCreateSolvabilityCheck() {
+  if (createValidationFrame !== null) {
+    cancelAnimationFrame(createValidationFrame);
+    createValidationFrame = null;
+  }
+}
+
+function resetCreateValidationState() {
+  createValidationState = {
+    signature: '',
+    canFinish: false,
+    message: '',
+    minMoves: null,
+    pending: false,
+  };
+}
+
+function requestCreateSolvabilityCheck(signature) {
+  if (!isCreateMode || signature !== getCreateBlocksSignature()) {
+    return;
+  }
+
+  const orderedBlocks = getOrderedCreateBlocks();
+  if (!orderedBlocks) {
+    return;
+  }
+
+  const worker = getCreateValidationWorker();
+  if (!worker) {
+    applyCreateSolvabilityResult(signature, calculateCreateSolvability(orderedBlocks));
+    return;
+  }
+
+  worker.postMessage({
+    id: ++createValidationRequestId,
+    signature: signature,
+    blocks: orderedBlocks,
+    boardSize: [BOARD_ROWS, BOARD_COLS],
+    escapePoint: [3, 1],
+  });
+}
+
+function getCreateValidationWorker() {
+  if (createValidationWorkerFailed) {
+    return null;
+  }
+
+  if (createValidationWorker) {
+    return createValidationWorker;
+  }
+
+  try {
+    createValidationWorker = new Worker('./solver-worker.js');
+    createValidationWorker.addEventListener('message', handleCreateValidationWorkerMessage);
+    createValidationWorker.addEventListener('error', handleCreateValidationWorkerError);
+    return createValidationWorker;
+  } catch (error) {
+    createValidationWorkerFailed = true;
+    return null;
+  }
+}
+
+function handleCreateValidationWorkerMessage(event) {
+  const { signature, result } = event.data;
+  applyCreateSolvabilityResult(signature, result);
+}
+
+function handleCreateValidationWorkerError() {
+  if (createValidationWorker) {
+    createValidationWorker.terminate();
+    createValidationWorker = null;
+  }
+  createValidationWorkerFailed = true;
+
+  const signature = createValidationState.signature;
+  if (isCreateMode && createValidationState.pending && signature === getCreateBlocksSignature()) {
+    applyCreateSolvabilityResult(signature, calculateCreateSolvability(getOrderedCreateBlocks()));
+  }
+}
+
+function applyCreateSolvabilityResult(signature, result) {
+  createValidationCache.set(signature, result);
+
+  if (!isCreateMode || signature !== getCreateBlocksSignature()) {
+    return;
+  }
+
+  createValidationState = {
+    signature: signature,
+    ...result,
+    pending: false,
+  };
+  updateCreateControls();
+}
+
+function calculateCreateSolvability(orderedBlocks) {
+  if (!orderedBlocks) {
+    return { canFinish: false, message: '', minMoves: null };
+  }
+
+  const result = klotski.solve({
+    blocks: orderedBlocks,
+    boardSize: [BOARD_ROWS, BOARD_COLS],
+    escapePoint: [3, 1],
+    singleMove: false,
+  });
+
+  if (!result) {
+    return {
+      canFinish: false,
+      message: 'This game is not solvable. Adjust the blocks before finishing.',
+      minMoves: null,
+    };
+  }
+
+  const mergedSteps = klotski.mergeSteps(result);
+  const minMoves = mergedSteps.length > 0 ? mergedSteps[mergedSteps.length - 1].step : 0;
+  return { canFinish: true, message: '', minMoves: minMoves };
+}
+
+function getCreateBlocksSignature() {
+  return createBlocks
+    .map(block => block.shape.join('x') + '@' + block.row + ',' + block.col)
+    .join('|');
+}
+
+function getOrderedCreateBlocks() {
+  const caocaoIndex = createBlocks.findIndex(block => block.shape[0] === 2 && block.shape[1] === 2);
+  if (caocaoIndex === -1) {
+    return null;
+  }
+
+  return [
+    createBlocks[caocaoIndex],
+    ...createBlocks.filter((_, index) => index !== caocaoIndex),
+  ].map(block => ({
+    shape: block.shape.slice(0),
+    position: [block.row, block.col],
+  }));
 }
 
 function handlePalettePointerDown(e) {
@@ -1178,6 +1392,7 @@ function syncCreateBlocksToBoard() {
   }));
   renderBoard();
   updateCreateControls();
+  scheduleCreateSolvabilityCheck();
   updateControlButtons();
 }
 

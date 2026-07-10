@@ -42,7 +42,8 @@
       <!-- Right: Control Panel & Status -->
       <section class="controls-section">
         <div class="glass-card">
-          <h2>Game Selection</h2>
+          <h2 id="panel-title">Game Selection</h2>
+          <p id="create-description" class="create-description hidden">Drag blocks onto the board to build a layout. The red 2x2 block is required; other block types can be added multiple times.</p>
           <div class="select-wrapper">
             <select id="game-selector">
               <!-- Loaded dynamically -->
@@ -55,37 +56,13 @@
             <button type="button" class="theme-option" data-theme-choice="dark">Dark</button>
           </div>
 
-          <div class="create-actions">
-            <button id="create-game-btn" class="btn btn-secondary">
-              Create Game
-            </button>
-            <button id="finish-create-btn" class="btn btn-primary hidden" disabled>
-              Finish
-            </button>
-            <button id="cancel-create-btn" class="btn btn-secondary hidden">
-              Cancel
-            </button>
-          </div>
-
-          <div id="create-palette" class="create-palette hidden">
-            <div class="palette-piece palette-caocao" data-shape="2,2"></div>
-            <div class="palette-piece palette-vertical" data-shape="2,1"></div>
-            <div class="palette-piece palette-horizontal" data-shape="1,2"></div>
-            <div class="palette-piece palette-soldier" data-shape="1,1"></div>
-          </div>
-
-          <div class="toggle-container">
-            <label class="switch">
-              <input type="checkbox" id="combined-moves-toggle" checked>
-              <span class="slider"></span>
-            </label>
-            <span class="toggle-label">Use Combined Moves</span>
-          </div>
-
           <div class="status-panel">
-            <div class="status-row">
-              <span class="status-label">Layout:</span>
-              <span id="layout-name" class="status-value">—</span>
+            <div class="status-row toggle-container">
+              <span class="toggle-label">Combine Moves</span>
+              <label class="switch">
+                <input type="checkbox" id="combined-moves-toggle" checked>
+                <span class="slider"></span>
+              </label>
             </div>
             <div class="status-row">
               <span class="status-label">Min Moves:</span>
@@ -117,6 +94,28 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg>
             Reset Board
           </button>
+
+          <div id="create-palette" class="create-palette hidden">
+            <div class="palette-piece palette-caocao" data-shape="2,2"></div>
+            <div class="palette-piece palette-vertical" data-shape="2,1"></div>
+            <div class="palette-piece palette-horizontal" data-shape="1,2"></div>
+            <div class="palette-piece palette-soldier" data-shape="1,1"></div>
+          </div>
+
+          <p id="create-validation-message" class="create-validation-message hidden" role="status" aria-live="polite"></p>
+          <p id="create-min-moves" class="create-min-moves hidden"></p>
+
+          <div class="create-actions">
+            <button id="create-game-btn" class="btn btn-secondary">
+              Create Game
+            </button>
+            <button id="finish-create-btn" class="btn btn-primary hidden" disabled>
+              Finish
+            </button>
+            <button id="cancel-create-btn" class="btn btn-secondary hidden">
+              Cancel
+            </button>
+          </div>
 
           <button id="help-btn" class="btn btn-secondary">
             Help
