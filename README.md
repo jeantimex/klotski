@@ -131,55 +131,55 @@ We only prune duplicate states if we reach the same configuration with the same 
 
 ## Benchmark
 
-The average running time is calculated by finding the minimum moves of each game 100 times.
+The average running time below is calculated by finding the minimum moves of each game 20 times using Node.js v20.18.0 on macOS 26.5.1. Timings vary by machine, runtime, and background load.
 
 | ![1](docs/images/1.png) | ![2](docs/images/2.png) | ![3](docs/images/3.png) | ![4](docs/images/4.png) | ![5](docs/images/5.png) |
 |:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|
 | 横刀立马 | 指挥若定 | 将拥曹营 | 齐头并进 | 并分三路 |
 | 81 moves | 70 moves | 72 moves | 60 moves | 73 moves |
-| 145.7 ms | 130.6 ms | 137.8 ms | 136.1 ms | 97.1 ms |
+| 83.9 ms | 72.9 ms | 82.9 ms | 80.6 ms | 53.0 ms |
 
 | ![6](docs/images/6.png) | ![7](docs/images/7.png) | ![8](docs/images/8.png) | ![9](docs/images/9.png) | ![10](docs/images/10.png) |
 |:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|
 | 雨声淅沥 | 左右布兵 | 桃花园中 | 一路进军 | 一路顺风 |
 | 47 moves | 54 moves | 70 moves | 58 moves | 39 moves |
-| 12.1 ms | 118.3 ms | 131.0 ms | 129.2 ms | 11.8 ms |
+| 6.8 ms | 69.0 ms | 75.0 ms | 73.0 ms | 6.5 ms |
 
 | ![11](docs/images/11.png) | ![12](docs/images/12.png) | ![13](docs/images/13.png) | ![14](docs/images/14.png) | ![15](docs/images/15.png) |
 |:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|
 | 围而不歼 | 捷足先登 | 插翅难飞 | 守口如瓶 I | 守口如瓶 II |
 | 62 moves | 32 moves | 62 moves | 81 moves | 99 moves |
-| 12.0 ms | 7.0 ms | 263.3 ms | 251.5 ms | 246.5 ms |
+| 6.1 ms | 3.0 ms | 146.5 ms | 155.5 ms | 148.0 ms |
 
 | ![16](docs/images/16.png) | ![17](docs/images/17.png) | ![18](docs/images/18.png) | ![19](docs/images/19.png) | ![20](docs/images/20.png) |
 |:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|
 | 双将挡路 | 横马当关 | 层层设防 I | 层层设防 II | 兵挡将阻 |
 | 73 moves | 83 moves | 102 moves | 120 moves | 87 moves |
-| 258.6 ms | 242.6 ms | 162.9 ms | 210.0 ms | 206.5 ms |
+| 153.0 ms | 161.0 ms | 109.5 ms | 134.9 ms | 128.5 ms |
 
 | ![21](docs/images/21.png) | ![22](docs/images/22.png) | ![23](docs/images/23.png) | ![24](docs/images/24.png) | ![25](docs/images/25.png) |
 |:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|
 | 堵塞要道 | 瓮中之鳖 | 层峦叠嶂 | 水泄不通 | 四路进兵 |
 | 40 moves | 103 moves | 98 moves | 79 moves | 77 moves |
-| 99.5 ms | 158.1 ms | 166.2 ms | 102.4 ms | 90.0 ms |
+| 55.9 ms | 104.0 ms | 100.6 ms | 54.5 ms | 55.5 ms |
 
 | ![26](docs/images/26.png) | ![27](docs/images/27.png) | ![28](docs/images/28.png) | ![29](docs/images/29.png) | ![30](docs/images/30.png) |
 |:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|
 | 入地无门 | 勇闯五关 | 四面楚歌 | 前呼后拥 | 兵临曹营 |
 | 87 moves | 34 moves | 57 moves | 22 moves | 34 moves |
-| 87.3 ms | 10.8 ms | 94.1 ms | 5.5 ms | 7.5 ms |
+| 53.1 ms | 4.8 ms | 55.7 ms | 2.2 ms | 3.1 ms |
 
 | ![31](docs/images/31.png) | ![32](docs/images/32.png) | ![33](docs/images/33.png) | ![35](docs/images/35.png) | ![36](docs/images/36.png) |
 |:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|
 | 五将逼宫 | 前挡后阻 | 近在咫尺 | 小燕出巢 | 比翼横空 |
 | 36 moves | 42 moves | 98 moves | 103 moves | 28 moves |
-| 39.3 ms | 90.0 ms | 246.2 ms | 159.4 ms | 21.0 ms |
+| 23.0 ms | 53.4 ms | 151.2 ms | 102.1 ms | 10.0 ms |
 
 | ![37](docs/images/37.png) | ![38](docs/images/38.png) | ![39](docs/images/39.png) | ![40](docs/images/40.png) | ![34](docs/images/34.png) |
 |:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|:-----------------------:|
 | 夹道藏兵 | 屯兵东路 | 四将连关 | 峰回路转 | 走投无路 |
 | 75 moves | 71 moves | 39 moves | 138 moves | no solution |
-| 84.1 ms | 113.1 ms | 16.9 ms | 233.4 ms | - |
+| 53.7 ms | 73.9 ms | 8.5 ms | 148.1 ms | - |
 
 ## Contribution
 
