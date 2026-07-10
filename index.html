@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="system">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Klotski Grandmaster — Interactive Solver & Player</title>
+  <meta name="description" content="A premium interactive solver and player for Klotski (华容道) puzzles, featuring 40 classic layouts with Dial's Dijkstra shortest path solver.">
+  
+  <!-- Modern Typography & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Serif+SC:wght@700;900&display=swap" rel="stylesheet">
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Theme Toggle -->
+    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle color scheme">
+      <svg class="theme-icon sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="5"></circle>
+        <line x1="12" y1="1" x2="12" y2="3"></line>
+        <line x1="12" y1="21" x2="12" y2="23"></line>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+        <line x1="1" y1="12" x2="3" y2="12"></line>
+        <line x1="21" y1="12" x2="23" y2="12"></line>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+      </svg>
+      <svg class="theme-icon moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+      </svg>
+    </button>
+
+    <main class="main-content">
+      <!-- Left: Interactive Game Board -->
+      <section class="board-section">
+        <header class="app-header">
+          <h1 class="glow-text">华容道</h1>
+          <p class="subtitle">Klotski Grandmaster</p>
+        </header>
+
+        <div class="board-wrapper">
+          <div id="game-board" class="game-board">
+            <!-- Grid lines background is handled by CSS -->
+          </div>
+          <div id="board-overlay" class="board-overlay hidden">
+            <div class="overlay-content">
+              <span class="overlay-title">Completed!</span>
+              <span class="overlay-subtitle">Reset the board or choose a new game</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right: Control Panel & Status -->
+      <section class="controls-section">
+        <div class="glass-card">
+          <h2 id="panel-title">Game Selection</h2>
+          <p id="create-description" class="create-description hidden">Drag blocks onto the board to build a layout. The red 2x2 block is required; other block types can be added multiple times.</p>
+          <div class="select-wrapper">
+            <select id="game-selector">
+              <!-- Loaded dynamically -->
+            </select>
+          </div>
+
+          <div class="status-panel">
+            <div class="status-row toggle-container">
+              <span class="toggle-label">Combine Moves</span>
+              <label class="switch">
+                <input type="checkbox" id="combined-moves-toggle" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="status-row">
+              <span class="status-label">Min Moves:</span>
+              <span id="min-moves" class="status-value">—</span>
+            </div>
+            <div class="status-row">
+              <span class="status-label">Current Step:</span>
+              <span id="step-counter" class="status-value">0 / 0</span>
+            </div>
+          </div>
+
+          <div class="action-buttons">
+            <button id="prev-btn" class="btn btn-secondary" title="Previous Step (Left Arrow)">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+              Prev
+            </button>
+            <button id="play-pause-btn" class="btn btn-primary" title="Toggle Auto Play (Space)">
+              <svg id="play-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              <svg id="pause-icon" class="hidden" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+              Auto
+            </button>
+            <button id="next-btn" class="btn btn-secondary" title="Next Step (Right Arrow)">
+              Next
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </button>
+          </div>
+
+          <button id="reset-btn" class="btn btn-danger">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg>
+            Reset Board
+          </button>
+
+          <div id="create-palette" class="create-palette hidden">
+            <div class="palette-piece palette-caocao" data-shape="2,2"></div>
+            <div class="palette-piece palette-vertical" data-shape="2,1"></div>
+            <div class="palette-piece palette-horizontal" data-shape="1,2"></div>
+            <div class="palette-piece palette-soldier" data-shape="1,1"></div>
+          </div>
+
+          <p id="create-validation-message" class="create-validation-message hidden" role="status" aria-live="polite"></p>
+          <p id="create-min-moves" class="create-min-moves hidden"></p>
+
+          <div class="create-actions">
+            <button id="create-game-btn" class="btn btn-secondary">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+              Create Game
+            </button>
+            <button id="finish-create-btn" class="btn btn-primary hidden" disabled>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              Finish
+            </button>
+            <button id="cancel-create-btn" class="btn btn-secondary hidden">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              Cancel
+            </button>
+          </div>
+
+          <button id="help-btn" class="btn btn-secondary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            Help
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <a class="github-link" href="https://github.com/jeantimex/klotski" target="_blank" rel="noopener noreferrer" aria-label="View klotski on GitHub">
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+          <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-2.13c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.27-1.68-1.27-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.75 1.18 1.75 1.18 1.02 1.75 2.68 1.24 3.33.95.1-.74.4-1.24.73-1.53-2.55-.29-5.23-1.28-5.23-5.68 0-1.25.45-2.28 1.18-3.08-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.16 1.18A10.9 10.9 0 0 1 12 6.07c.98 0 1.96.13 2.88.39 2.19-1.49 3.15-1.18 3.15-1.18.63 1.58.24 2.75.12 3.04.74.8 1.18 1.83 1.18 3.08 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.06.78 2.14v3.14c0 .31.21.68.79.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/>
+        </svg>
+        <span>jeantimex</span>
+      </a>
+    </footer>
+  </div>
+
+  <dialog id="help-dialog" class="help-dialog">
+    <div class="help-dialog-content">
+      <div class="help-dialog-header">
+        <h3>How to Play</h3>
+        <button id="help-close-btn" class="dialog-close-btn" type="button" aria-label="Close help">×</button>
+      </div>
+      <ul>
+        <li>Click a block or focus it and press <strong>Enter</strong>/<strong>Space</strong> to move manually.</li>
+        <li>Use <strong>Next</strong> to follow the solver and <strong>Prev</strong> to step backward.</li>
+        <li>Use <strong>Auto</strong> to let the solver play itself.</li>
+        <li>Use <strong>Create Game</strong> to place custom blocks, then finish to solve that layout.</li>
+        <li>Keyboard shortcuts: <strong>Space</strong> for Auto, <strong>Left Arrow</strong> for Prev, <strong>Right Arrow</strong> for Next.</li>
+      </ul>
+      <p class="help-attribution">Powered by Dial's Dijkstra Solver Engine & Zobrist Hashing — 100% Client-Side</p>
+    </div>
+  </dialog>
+
+  <!-- Confetti Effect -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.browser.min.js"></script>
+
+  <!-- Core Solver & App Script -->
+  <script src="./klotski.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
