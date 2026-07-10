@@ -729,11 +729,15 @@ function loadGameDefinition(game) {
 function renderBoard() {
   const board = document.getElementById('game-board');
   board.innerHTML = '';
+  renderBoardCells(board);
 
   currentBlocksState.forEach((block, index) => {
     const div = document.createElement('div');
     div.id = 'block-' + index;
     div.className = 'block';
+    div.tabIndex = 0;
+    div.setAttribute('role', 'button');
+    div.setAttribute('aria-label', getBlockAriaLabel(block));
     
     // Size and position
     div.style.width = (block.shape[1] * CELL_SIZE) + 'px';
@@ -754,6 +758,25 @@ function renderBoard() {
 
     board.appendChild(div);
   });
+}
+
+function renderBoardCells(board) {
+  for (let row = 0; row < BOARD_ROWS; row++) {
+    for (let col = 0; col < BOARD_COLS; col++) {
+      const cell = document.createElement('div');
+      cell.className = 'board-cell';
+      if (row === 3 && (col === 1 || col === 2)) {
+        cell.classList.add('escape-cell');
+      }
+      cell.style.left = (col * CELL_SIZE) + 'px';
+      cell.style.top = (row * CELL_SIZE) + 'px';
+      board.appendChild(cell);
+    }
+  }
+}
+
+function getBlockAriaLabel(block) {
+  return block.shape[0] + ' by ' + block.shape[1] + ' block';
 }
 
 function setupEvents() {
@@ -789,6 +812,10 @@ function setupEvents() {
   // Click on board/blocks to advance/reverse
   document.getElementById('game-board').addEventListener('click', (e) => {
     handleStepClick(e);
+  });
+
+  document.getElementById('game-board').addEventListener('keydown', (e) => {
+    handleBoardKeydown(e);
   });
 
   // Buttons
@@ -845,6 +872,21 @@ function setupEvents() {
     }
   });
 
+}
+
+function handleBoardKeydown(e) {
+  if (e.code !== 'Enter' && e.code !== 'Space') {
+    return;
+  }
+
+  const blockEl = e.target.closest('.block');
+  if (!blockEl) {
+    return;
+  }
+
+  e.preventDefault();
+  e.stopPropagation();
+  activateBlockElement(blockEl);
 }
 
 function setupCreatePaletteEvents() {
@@ -1124,7 +1166,7 @@ function handleStepClick(e) {
     const blockEl = e.target.closest('.block');
     if (blockEl) {
       e.stopPropagation();
-      removeCreateBlock(parseInt(blockEl.id.replace('block-', '')));
+      activateBlockElement(blockEl);
     }
     return;
   }
@@ -1138,9 +1180,19 @@ function handleStepClick(e) {
   const blockEl = e.target.closest('.block');
   if (blockEl) {
     e.stopPropagation();
-    const blockIdx = parseInt(blockEl.id.replace('block-', ''));
-    handleManualBlockClick(blockIdx);
+    activateBlockElement(blockEl);
   }
+}
+
+function activateBlockElement(blockEl) {
+  const blockIdx = parseInt(blockEl.id.replace('block-', ''));
+
+  if (isCreateMode) {
+    removeCreateBlock(blockIdx);
+    return;
+  }
+
+  handleManualBlockClick(blockIdx);
 }
 
 function getCurrentMoveCount() {
