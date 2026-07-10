@@ -42,11 +42,12 @@
       return (dirIdx1 + 2) % MAX_MOVE_DIRECTION === dirIdx2;
     }
 
+    function boardIndex(row, col) {
+      return row * HRD_BOARD_WIDTH + col;
+    }
+
     function copyGameState(gameState) {
-      var newBoard = [];
-      for (var i = 0; i < HRD_BOARD_HEIGHT; i++) {
-        newBoard[i] = gameState.board[i].slice(0);
-      }
+      var newBoard = gameState.board.slice(0);
 
       var newBlocks = [];
       for (var i = 0; i < gameState.blocks.length; i++) {
@@ -83,7 +84,7 @@
 
       for (i = 1; i <= HRD_GAME_ROW; i++) {
         for (j = 1; j <= HRD_GAME_COL; j++) {
-          var index = gameState.board[i][j] - 1;
+          var index = gameState.board[boardIndex(i, j)] - 1;
           var type = index >= 0 && index < blocks.length ? blocks[index].type : 0;
           hash ^= zob_hash.key[i - 1][j - 1].value[type];
         }
@@ -99,7 +100,7 @@
 
       for (i = 1; i <= HRD_GAME_ROW; i++) {
         for (j = 1; j <= HRD_GAME_COL; j++) {
-          var index = gameState.board[i][j] - 1;
+          var index = gameState.board[boardIndex(i, j)] - 1;
           var type = index >= 0 && index < blocks.length ? blocks[index].type : 0;
           hash ^= zob_hash.key[i - 1][HRD_GAME_COL - j].value[type];
         }
@@ -120,20 +121,31 @@
       var x = dir.x;
       var y = dir.y;
 
-      // Clear the old position
-      for (var i = 0; i < shape[0]; i++) {
+      if (y !== 0) {
+        var rowToClear = y > 0 ? row : row + shape[0] - 1;
+        var rowToFill = y > 0 ? row + shape[0] : row - 1;
         for (var j = 0; j < shape[1]; j++) {
-          hash ^= zob_hash.key[row + i][col + j * dx].value[type];
-          hash ^= zob_hash.key[row + i][col + j * dx].value[0];
+          var clearCol = col + j * dx;
+          var fillCol = col + x + j * dx;
+          hash ^= zob_hash.key[rowToClear][clearCol].value[type];
+          hash ^= zob_hash.key[rowToClear][clearCol].value[0];
+          hash ^= zob_hash.key[rowToFill][fillCol].value[0];
+          hash ^= zob_hash.key[rowToFill][fillCol].value[type];
         }
+        return hash;
       }
 
-      // Take the new position
+      var clearEdge = x > 0 ? (dx > 0 ? 0 : shape[1] - 1) : dx > 0 ? shape[1] - 1 : 0;
+      var fillEdge = x > 0 ? (dx > 0 ? shape[1] - 1 : 0) : dx > 0 ? 0 : shape[1] - 1;
+      var colToClear = col + clearEdge * dx;
+      var colToFill = col + x + fillEdge * dx;
       for (var i = 0; i < shape[0]; i++) {
-        for (var j = 0; j < shape[1]; j++) {
-          hash ^= zob_hash.key[row + y + i][col + x + j * dx].value[0];
-          hash ^= zob_hash.key[row + y + i][col + x + j * dx].value[type];
-        }
+        var clearRow = row + i;
+        var fillRow = row + i;
+        hash ^= zob_hash.key[clearRow][colToClear].value[type];
+        hash ^= zob_hash.key[clearRow][colToClear].value[0];
+        hash ^= zob_hash.key[fillRow][colToFill].value[0];
+        hash ^= zob_hash.key[fillRow][colToFill].value[type];
       }
 
       return hash;
@@ -174,7 +186,7 @@
     function isPositionAvailable(state, shape, row, col) {
       for (var i = 1; i <= shape[0]; i++) {
         for (var j = 1; j <= shape[1]; j++) {
-          if (state.board[row + i][col + j] !== BOARD_CELL_EMPTY) {
+          if (state.board[boardIndex(row + i, col + j)] !== BOARD_CELL_EMPTY) {
             return false;
           }
         }
@@ -195,7 +207,7 @@
       if (dir.y !== 0) {
         var checkRow = dir.y > 0 ? block.row + shape[0] + 1 : block.row;
         for (var j = 1; j <= shape[1]; j++) {
-          var val = state.board[checkRow][block.col + j];
+          var val = state.board[boardIndex(checkRow, block.col + j)];
           if (val !== BOARD_CELL_EMPTY && val !== blockIdx + 1) {
             return false;
           }
@@ -205,7 +217,7 @@
 
       var checkCol = dir.x > 0 ? block.col + shape[1] + 1 : block.col;
       for (var i = 1; i <= shape[0]; i++) {
-        var val = state.board[block.row + i][checkCol];
+        var val = state.board[boardIndex(block.row + i, checkCol)];
         if (val !== BOARD_CELL_EMPTY && val !== blockIdx + 1) {
           return false;
         }
@@ -217,7 +229,7 @@
     function clearPosition(state, shape, row, col) {
       for (var i = 1; i <= shape[0]; i++) {
         for (var j = 1; j <= shape[1]; j++) {
-          state.board[row + i][col + j] = BOARD_CELL_EMPTY;
+          state.board[boardIndex(row + i, col + j)] = BOARD_CELL_EMPTY;
         }
       }
     }
@@ -225,7 +237,7 @@
     function takePosition(state, blockIdx, shape, row, col) {
       for (var i = 1; i <= shape[0]; i++) {
         for (var j = 1; j <= shape[1]; j++) {
-          state.board[row + i][col + j] = blockIdx + 1;
+          state.board[boardIndex(row + i, col + j)] = blockIdx + 1;
         }
       }
     }
@@ -243,21 +255,16 @@
     function initGameStateBoard(state) {
       var i, j;
 
-      for (i = 0; i < HRD_BOARD_HEIGHT; i++) {
-        state.board[i] = [];
-        for (j = 0; j < HRD_BOARD_WIDTH; j++) {
-          state.board[i][j] = BOARD_CELL_EMPTY;
-        }
-      }
+      state.board = new Int8Array(HRD_BOARD_WIDTH * HRD_BOARD_HEIGHT);
 
       for (i = 0; i < HRD_BOARD_WIDTH; i++) {
-        state.board[0][i] = BOARD_CELL_BORDER;
-        state.board[HRD_BOARD_HEIGHT - 1][i] = BOARD_CELL_BORDER;
+        state.board[boardIndex(0, i)] = BOARD_CELL_BORDER;
+        state.board[boardIndex(HRD_BOARD_HEIGHT - 1, i)] = BOARD_CELL_BORDER;
       }
 
       for (i = 1; i < HRD_BOARD_HEIGHT - 1; i++) {
-        state.board[i][0] = BOARD_CELL_BORDER;
-        state.board[i][HRD_BOARD_WIDTH - 1] = BOARD_CELL_BORDER;
+        state.board[boardIndex(i, 0)] = BOARD_CELL_BORDER;
+        state.board[boardIndex(i, HRD_BOARD_WIDTH - 1)] = BOARD_CELL_BORDER;
       }
     }
 
