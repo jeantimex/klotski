@@ -818,6 +818,12 @@ function renderBoardCells(board) {
       if (row === 3 && (col === 1 || col === 2)) {
         cell.classList.add('escape-cell');
       }
+      if (row === 4 && col === 1) {
+        cell.classList.add('exit-cell', 'exit-left');
+      }
+      if (row === 4 && col === 2) {
+        cell.classList.add('exit-cell', 'exit-right');
+      }
       cell.style.left = (col * CELL_SIZE) + 'px';
       cell.style.top = (row * CELL_SIZE) + 'px';
       board.appendChild(cell);

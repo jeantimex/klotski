@@ -152,16 +152,41 @@
   <dialog id="help-dialog" class="help-dialog">
     <div class="help-dialog-content">
       <div class="help-dialog-header">
-        <h3>How to Play</h3>
+        <h3 class="dialog-title">About & How to Play</h3>
         <button id="help-close-btn" class="dialog-close-btn" type="button" aria-label="Close help">×</button>
       </div>
-      <ul>
-        <li>Click a block or focus it and press <strong>Enter</strong>/<strong>Space</strong> to move manually.</li>
-        <li>Use <strong>Next</strong> to follow the solver and <strong>Prev</strong> to step backward.</li>
-        <li>Use <strong>Auto</strong> to let the solver play itself.</li>
-        <li>Use <strong>Create Game</strong> to place custom blocks, then finish to solve that layout.</li>
-        <li>Keyboard shortcuts: <strong>Space</strong> for Auto, <strong>Left Arrow</strong> for Prev, <strong>Right Arrow</strong> for Next.</li>
-      </ul>
+      
+      <div class="help-dialog-body">
+        <section class="help-section">
+          <h3>The Goal</h3>
+          <p><strong>Klotski</strong> (华容道, <em>Huarong Dao</em>) is a classic sliding block puzzle. The objective is to guide the large <strong>red 2x2 block (Cao Cao)</strong> to the <strong>escape opening</strong> at the bottom center of the board by sliding all blocks into adjacent empty spaces.</p>
+        </section>
+
+        <section class="help-section">
+          <h3>How to Play</h3>
+          <ul>
+            <li><strong>Manual play:</strong> Click/tap a block, or navigate using your keyboard and press <strong>Enter</strong>/<strong>Space</strong>, then slide/move it into an adjacent space.</li>
+            <li><strong>Solver navigation:</strong> Use the <strong>Next</strong> and <strong>Prev</strong> buttons (or <strong>Right/Left Arrow keys</strong>) to step through the shortest solution path.</li>
+            <li><strong>Auto Play:</strong> Click <strong>Auto</strong> (or press the <strong>Space key</strong>) to watch the Dijkstra AI solver automatically play the optimal path.</li>
+            <li><strong>Create Layouts:</strong> Click <strong>Create Game</strong> to design custom configurations, drag pieces onto the board, and let the AI find the optimal solution.</li>
+          </ul>
+        </section>
+
+        <section class="help-section">
+          <h3>Key Concepts</h3>
+          <dl class="help-defs">
+            <div>
+              <dt>Min Moves</dt>
+              <dd>The absolute fewest moves required to solve the puzzle from the starting configuration, calculated using Dijkstra's shortest path algorithm.</dd>
+            </div>
+            <div>
+              <dt>Combine Moves</dt>
+              <dd>When <strong>enabled</strong>, sliding the same block consecutively in a sequence counts as a single move. When <strong>disabled</strong>, every individual cell-by-cell slide is counted as a separate move.</dd>
+            </div>
+          </dl>
+        </section>
+      </div>
+
       <p class="help-attribution">Powered by Dial's Dijkstra Solver Engine & Zobrist Hashing — 100% Client-Side</p>
     </div>
   </dialog>
