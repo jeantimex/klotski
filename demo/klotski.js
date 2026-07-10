@@ -30,15 +30,12 @@
     var zob_hash;
     var level = 0;
 
-    function getType(types, shape) {
-      return types[shape[0] + '-' + shape[1]];
-    }
-
     function setTypes(types, shape) {
       var key = shape[0] + '-' + shape[1];
       if (!types[key]) {
         types[key] = Object.keys(types).length + 1;
       }
+      return types[key];
     }
 
     function isReverseDirection(dirIdx1, dirIdx2) {
@@ -54,24 +51,18 @@
       var newBlocks = [];
       for (var i = 0; i < gameState.blocks.length; i++) {
         newBlocks[i] = {
-          shape: gameState.blocks[i].shape.slice(0),
-          directions: gameState.blocks[i].directions ? gameState.blocks[i].directions.slice(0) : null,
+          shape: gameState.blocks[i].shape,
+          directions: gameState.blocks[i].directions,
+          type: gameState.blocks[i].type,
           row: gameState.blocks[i].row,
           col: gameState.blocks[i].col,
         };
       }
 
-      var newTypes = {};
-      for (var key in gameState.types) {
-        if (gameState.types.hasOwnProperty(key)) {
-          newTypes[key] = gameState.types[key];
-        }
-      }
-
       var newState = {
         board: newBoard,
         blocks: newBlocks,
-        types: newTypes,
+        types: gameState.types,
         move: {
           blockIdx: gameState.move.blockIdx,
           dirIdx: gameState.move.dirIdx,
@@ -93,7 +84,7 @@
       for (i = 1; i <= HRD_GAME_ROW; i++) {
         for (j = 1; j <= HRD_GAME_COL; j++) {
           var index = gameState.board[i][j] - 1;
-          var type = index >= 0 && index < blocks.length ? getType(gameState.types, blocks[index].shape) : 0;
+          var type = index >= 0 && index < blocks.length ? blocks[index].type : 0;
           hash ^= zob_hash.key[i - 1][j - 1].value[type];
         }
       }
@@ -109,7 +100,7 @@
       for (i = 1; i <= HRD_GAME_ROW; i++) {
         for (j = 1; j <= HRD_GAME_COL; j++) {
           var index = gameState.board[i][j] - 1;
-          var type = index >= 0 && index < blocks.length ? getType(gameState.types, blocks[index].shape) : 0;
+          var type = index >= 0 && index < blocks.length ? blocks[index].type : 0;
           hash ^= zob_hash.key[i - 1][HRD_GAME_COL - j].value[type];
         }
       }
@@ -122,7 +113,7 @@
       var block = gameState.blocks[blockIdx];
       var shape = block.shape;
       var row = block.row;
-      var type = getType(gameState.types, shape);
+      var type = block.type;
       var col = isMirror ? HRD_GAME_COL - 1 - block.col : block.col;
       var dx = isMirror ? -1 : 1;
       var dir = directions[isMirror && dirIdx % 2 === 1 ? (dirIdx + 2) % 4 : dirIdx];
@@ -201,12 +192,22 @@
       var shape = block.shape;
       var dir = directions[dirIdx];
 
-      for (var i = 1; i <= shape[0]; i++) {
+      if (dir.y !== 0) {
+        var checkRow = dir.y > 0 ? block.row + shape[0] + 1 : block.row;
         for (var j = 1; j <= shape[1]; j++) {
-          var val = state.board[block.row + dir.y + i][block.col + dir.x + j];
+          var val = state.board[checkRow][block.col + j];
           if (val !== BOARD_CELL_EMPTY && val !== blockIdx + 1) {
             return false;
           }
+        }
+        return true;
+      }
+
+      var checkCol = dir.x > 0 ? block.col + shape[1] + 1 : block.col;
+      for (var i = 1; i <= shape[0]; i++) {
+        var val = state.board[block.row + i][checkCol];
+        if (val !== BOARD_CELL_EMPTY && val !== blockIdx + 1) {
+          return false;
         }
       }
 
@@ -232,7 +233,7 @@
     function addGameStateBlock(state, blockIdx, block) {
       if (isPositionAvailable(state, block.shape, block.row, block.col)) {
         takePosition(state, blockIdx, block.shape, block.row, block.col);
-        setTypes(state.types, block.shape);
+        block.type = setTypes(state.types, block.shape);
         state.blocks.push(block);
         return true;
       }
@@ -355,6 +356,7 @@
 
     function resolveGame(game, options) {
       var buckets = [];
+      var bucketHeads = [];
       var minStep = 0;
       var queueSize = 0;
 
@@ -362,6 +364,7 @@
         var step = state.step;
         if (!buckets[step]) {
           buckets[step] = [];
+          bucketHeads[step] = 0;
         }
         buckets[step].push(state);
         queueSize++;
@@ -374,22 +377,44 @@
         if (queueSize === 0) {
           return null;
         }
-        while (!buckets[minStep] || buckets[minStep].length === 0) {
+        while (!buckets[minStep] || bucketHeads[minStep] >= buckets[minStep].length) {
           minStep++;
         }
         queueSize--;
-        return buckets[minStep].shift();
+        return buckets[minStep][bucketHeads[minStep]++];
       }
 
       var isSingle = options && options.singleMove;
+      var visited = isSingle ? Object.create(null) : [];
       var initialState = game.states[0];
       pushToQueue(initialState);
 
-      var initialKey = isSingle ? initialState.hash : initialState.hash + '-null';
-      game.zhash[initialKey] = 0;
-      if (NO_LR_MIRROR_ALLOW) {
-        var initialKeyMirror = isSingle ? initialState.hashMirror : initialState.hashMirror + '-null';
-        game.zhash[initialKeyMirror] = 0;
+      function getVisitedStep(hash, blockIdx) {
+        if (isSingle) {
+          return visited[hash];
+        }
+
+        var bucket = visited[blockIdx];
+        return bucket ? bucket[hash] : undefined;
+      }
+
+      function setVisitedStep(hash, blockIdx, step) {
+        if (isSingle) {
+          visited[hash] = step;
+          return;
+        }
+
+        if (!visited[blockIdx]) {
+          visited[blockIdx] = Object.create(null);
+        }
+        visited[blockIdx][hash] = step;
+      }
+
+      if (isSingle) {
+        setVisitedStep(initialState.hash, 0, 0);
+        if (NO_LR_MIRROR_ALLOW) {
+          setVisitedStep(initialState.hashMirror, 0, 0);
+        }
       }
 
       while (queueSize > 0) {
@@ -415,14 +440,13 @@
               }
 
               var newStep = isContinue ? gameState.step : gameState.step + 1;
-              var stateKey = isSingle ? hash : hash + '-' + i;
-              var stateKeyMirror = isSingle ? hashMirror : hashMirror + '-' + i;
-
-              if (game.zhash.hasOwnProperty(stateKey) && game.zhash[stateKey] <= newStep) {
+              var visitedStep = getVisitedStep(hash, i);
+              if (visitedStep !== undefined && visitedStep <= newStep) {
                 continue;
               }
               if (NO_LR_MIRROR_ALLOW) {
-                if (game.zhash.hasOwnProperty(stateKeyMirror) && game.zhash[stateKeyMirror] <= newStep) {
+                var visitedMirrorStep = getVisitedStep(hashMirror, i);
+                if (visitedMirrorStep !== undefined && visitedMirrorStep <= newStep) {
                   continue;
                 }
               }
@@ -447,9 +471,9 @@
                 newState.hashMirror = hashMirror;
               }
 
-              game.zhash[stateKey] = newStep;
+              setVisitedStep(hash, i, newStep);
               if (NO_LR_MIRROR_ALLOW) {
-                game.zhash[stateKeyMirror] = newStep;
+                setVisitedStep(hashMirror, i, newStep);
               }
 
               pushToQueue(newState);
