@@ -120,6 +120,7 @@ body {
   justify-content: center;
   align-items: flex-start;
   overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .app-container {
@@ -133,6 +134,13 @@ body {
   justify-content: center;
 }
 
+@media (max-height: 800px) {
+  .app-container {
+    justify-content: flex-start;
+    padding-top: 60px;
+  }
+}
+
 /* Header */
 .app-header {
   text-align: center;
@@ -140,6 +148,7 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 5px;
+  margin-bottom: 28px;
 }
 
 .glow-text {
@@ -162,8 +171,9 @@ body {
 .main-content {
   display: flex;
   gap: 100px;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 @media (max-width: 768px) {
@@ -183,20 +193,16 @@ body {
 }
 
 @media (min-width: 769px) and (max-height: 760px) {
-  :root {
-    --cell-size: 72px;
-  }
-
   .app-container {
     padding-block: 12px;
   }
 
   .main-content {
-    gap: 28px;
+    gap: 60px;
   }
 
-  .board-section {
-    gap: 18px;
+  .app-header {
+    margin-bottom: 18px;
   }
 
   .glow-text {
@@ -205,10 +211,6 @@ body {
 
   .subtitle {
     font-size: 0.95rem;
-  }
-
-  .board-wrapper {
-    padding: 12px;
   }
 
   .glass-card {
@@ -235,8 +237,7 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 28px;
-  min-height: 0;
+  flex-shrink: 0;
 }
 
 .board-wrapper {
@@ -248,6 +249,7 @@ body {
   box-shadow:
     0 12px 32px rgba(0, 0, 0, 0.15),
     0 0 20px rgba(142, 84, 233, 0.03);
+  flex-shrink: 0;
 }
 
 :root:not([data-theme='light']) .board-wrapper {
