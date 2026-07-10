@@ -1683,6 +1683,7 @@ function setupBlockDragEvents() {
       initialLeft: initialLeft,
       initialTop: initialTop,
       hasDragged: false,
+      currentAxis: null, // Lock to 'h' or 'v' while in the middle of a slide
       originalRow: currentBlocksState[blockIdx].row,
       originalCol: currentBlocksState[blockIdx].col,
       originalVisited: new Set(currentBlocksState[blockIdx].visited),
@@ -1746,30 +1747,52 @@ function setupBlockDragEvents() {
         let finalLeft = currentCellLeft;
         let finalTop = currentCellTop;
         
-        if (Math.abs(offsetX) >= Math.abs(offsetY)) {
-          // Horizontal intent
+        // Lock to current axis if we are in the middle of a slide, otherwise decide based on pointer displacement
+        let isHorizontal = Math.abs(offsetX) >= Math.abs(offsetY);
+        if (dragInfo.currentAxis === 'h') {
+          isHorizontal = true;
+        } else if (dragInfo.currentAxis === 'v') {
+          isHorizontal = false;
+        }
+        
+        if (isHorizontal) {
           finalLeft = Math.max(minLeft, Math.min(maxLeft, currentCellLeft + offsetX));
+          // Lock axis if we moved away from the cell center, otherwise release lock
+          if (finalLeft !== currentCellLeft) {
+            dragInfo.currentAxis = 'h';
+          } else {
+            dragInfo.currentAxis = null;
+          }
         } else {
-          // Vertical intent
           finalTop = Math.max(minTop, Math.min(maxTop, currentCellTop + offsetY));
+          // Lock axis if we moved away from the cell center, otherwise release lock
+          if (finalTop !== currentCellTop) {
+            dragInfo.currentAxis = 'v';
+          } else {
+            dragInfo.currentAxis = null;
+          }
         }
         
         blockEl.style.left = finalLeft + 'px';
         blockEl.style.top = finalTop + 'px';
         
-        // Logical coordinate update: only snap to the next cell when we have fully reached it!
-        if (finalLeft === currentCellLeft + CELL_SIZE) {
-          block.col += 1;
-          block.visited.add(block.row + ',' + block.col);
-        } else if (finalLeft === currentCellLeft - CELL_SIZE) {
-          block.col -= 1;
-          block.visited.add(block.row + ',' + block.col);
-        } else if (finalTop === currentCellTop + CELL_SIZE) {
-          block.row += 1;
-          block.visited.add(block.row + ',' + block.col);
-        } else if (finalTop === currentCellTop - CELL_SIZE) {
-          block.row -= 1;
-          block.visited.add(block.row + ',' + block.col);
+        // Logical coordinate update: snap to the next cell at the halfway mark (40px)
+        const snappedCol = Math.round(finalLeft / CELL_SIZE);
+        const snappedRow = Math.round(finalTop / CELL_SIZE);
+        
+        if (snappedCol !== block.col || snappedRow !== block.row) {
+          block.col = snappedCol;
+          block.row = snappedRow;
+          block.visited.add(snappedRow + ',' + snappedCol);
+        }
+        
+        // Only release the axis lock when we are very close to the center of the current logical cell
+        const distToCenter = Math.max(
+          Math.abs(finalLeft - block.col * CELL_SIZE),
+          Math.abs(finalTop - block.row * CELL_SIZE)
+        );
+        if (distToCenter < 10) {
+          dragInfo.currentAxis = null;
         }
       }
     }
@@ -1795,16 +1818,13 @@ function setupBlockDragEvents() {
     if (dragInfo.hasDragged) {
       justDragged = true;
       
-      const currentLeft = parseFloat(blockEl.style.left) || (dragInfo.originalCol * CELL_SIZE);
-      const currentTop = parseFloat(blockEl.style.top) || (dragInfo.originalRow * CELL_SIZE);
-      
-      const targetCol = Math.round(currentLeft / CELL_SIZE);
-      const targetRow = Math.round(currentTop / CELL_SIZE);
-      
-      const hasGridMoved = targetRow !== dragInfo.originalRow || targetCol !== dragInfo.originalCol;
-      
       if (isCreateMode) {
-        // In create mode, place the block at the nearest valid grid cell
+        // In create mode, place the block at the nearest valid grid cell based on visual drop coordinates
+        const currentLeft = parseFloat(blockEl.style.left) || (dragInfo.originalCol * CELL_SIZE);
+        const currentTop = parseFloat(blockEl.style.top) || (dragInfo.originalRow * CELL_SIZE);
+        
+        const targetCol = Math.round(currentLeft / CELL_SIZE);
+        const targetRow = Math.round(currentTop / CELL_SIZE);
         const shape = currentBlocksState[dragInfo.blockIdx].shape;
         
         // Check if we can place the block here (excluding its own index)
@@ -1821,6 +1841,11 @@ function setupBlockDragEvents() {
         // Sync and re-render
         syncCreateBlocksToBoard();
       } else {
+        // In normal play mode, snapping is decided purely by the block's current logical coordinates
+        const targetCol = block.col;
+        const targetRow = block.row;
+        const hasGridMoved = targetRow !== dragInfo.originalRow || targetCol !== dragInfo.originalCol;
+        
         if (hasGridMoved) {
           // Commit the drag as a single manual move
           block.row = dragInfo.originalRow;
