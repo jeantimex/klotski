@@ -1,7 +1,7 @@
 const Klotski = require('../src/klotski');
 const hrdGames = require('../src/hrd-games.json');
 
-const runs = 5;
+const runs = 20;
 hrdGames.forEach((game) => {
   let result;
   const start = performance.now();
