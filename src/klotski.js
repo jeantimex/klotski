@@ -3,8 +3,6 @@
 
   var NO_LR_MIRROR_ALLOW = true;
 
-  var MAX_MOVE_DIRECTION = 4;
-
   var HRD_GAME_ROW = 5;
   var HRD_GAME_COL = 4;
   var HRD_BOARD_WIDTH = HRD_GAME_COL + 2;
@@ -20,15 +18,10 @@
     /**
      * Private variables
      */
-    var directions = [
-      { x: 0, y: 1 },
-      { x: 1, y: 0 },
-      { x: 0, y: -1 },
-      { x: -1, y: 0 },
-    ];
-    var directionName = ['Down', 'Right', 'Up', 'Left'];
+    var DIR_X = [0, 1, 0, -1];
+    var DIR_Y = [1, 0, -1, 0];
     var zob_hash;
-    var level = 0;
+    var zob_numTypes;
 
     function setTypes(types, shape) {
       var key = shape[0] + '-' + shape[1];
@@ -38,55 +31,19 @@
       return types[key];
     }
 
-    function isReverseDirection(dirIdx1, dirIdx2) {
-      return (dirIdx1 + 2) % MAX_MOVE_DIRECTION === dirIdx2;
-    }
-
-    function boardIndex(row, col) {
-      return row * HRD_BOARD_WIDTH + col;
-    }
-
-    function copyGameState(gameState) {
-      var newBoard = gameState.board.slice(0);
-
-      var newBlocks = [];
-      for (var i = 0; i < gameState.blocks.length; i++) {
-        newBlocks[i] = {
-          shape: gameState.blocks[i].shape,
-          directions: gameState.blocks[i].directions,
-          type: gameState.blocks[i].type,
-          row: gameState.blocks[i].row,
-          col: gameState.blocks[i].col,
-        };
-      }
-
-      var newState = {
-        board: newBoard,
-        blocks: newBlocks,
-        types: gameState.types,
-        move: {
-          blockIdx: gameState.move.blockIdx,
-          dirIdx: gameState.move.dirIdx,
-        },
-        step: gameState.step,
-        hash: gameState.hash,
-        hashMirror: gameState.hashMirror,
-        parent: gameState.parent,
-      };
-
-      return newState;
-    }
-
     function getZobristHash(gameState) {
-      var i, j;
       var hash = 0;
       var blocks = gameState.blocks;
+      var board = gameState.board;
+      var numBlocks = blocks.length;
 
-      for (i = 1; i <= HRD_GAME_ROW; i++) {
-        for (j = 1; j <= HRD_GAME_COL; j++) {
-          var index = gameState.board[boardIndex(i, j)] - 1;
-          var type = index >= 0 && index < blocks.length ? blocks[index].type : 0;
-          hash ^= zob_hash.key[i - 1][j - 1].value[type];
+      for (var i = 0; i < HRD_GAME_ROW; i++) {
+        var rowOffset = (i + 1) * HRD_BOARD_WIDTH + 1;
+        var zobRowOffset = i * HRD_GAME_COL * zob_numTypes;
+        for (var j = 0; j < HRD_GAME_COL; j++) {
+          var index = board[rowOffset + j] - 1;
+          var type = index >= 0 && index < numBlocks ? blocks[index].type : 0;
+          hash ^= zob_hash[zobRowOffset + j * zob_numTypes + type];
         }
       }
 
@@ -94,15 +51,18 @@
     }
 
     function getMirrorZobristHash(gameState) {
-      var i, j;
       var hash = 0;
       var blocks = gameState.blocks;
+      var board = gameState.board;
+      var numBlocks = blocks.length;
 
-      for (i = 1; i <= HRD_GAME_ROW; i++) {
-        for (j = 1; j <= HRD_GAME_COL; j++) {
-          var index = gameState.board[boardIndex(i, j)] - 1;
-          var type = index >= 0 && index < blocks.length ? blocks[index].type : 0;
-          hash ^= zob_hash.key[i - 1][HRD_GAME_COL - j].value[type];
+      for (var i = 0; i < HRD_GAME_ROW; i++) {
+        var rowOffset = (i + 1) * HRD_BOARD_WIDTH + 1;
+        var zobRowOffset = i * HRD_GAME_COL * zob_numTypes;
+        for (var j = 0; j < HRD_GAME_COL; j++) {
+          var index = board[rowOffset + j] - 1;
+          var type = index >= 0 && index < numBlocks ? blocks[index].type : 0;
+          hash ^= zob_hash[zobRowOffset + (HRD_GAME_COL - 1 - j) * zob_numTypes + type];
         }
       }
 
@@ -117,9 +77,9 @@
       var type = block.type;
       var col = isMirror ? HRD_GAME_COL - 1 - block.col : block.col;
       var dx = isMirror ? -1 : 1;
-      var dir = directions[isMirror && dirIdx % 2 === 1 ? (dirIdx + 2) % 4 : dirIdx];
-      var x = dir.x;
-      var y = dir.y;
+      var actualDir = isMirror && dirIdx % 2 === 1 ? (dirIdx + 2) % 4 : dirIdx;
+      var x = DIR_X[actualDir];
+      var y = DIR_Y[actualDir];
 
       if (y !== 0) {
         var rowToClear = y > 0 ? row : row + shape[0] - 1;
@@ -127,10 +87,12 @@
         for (var j = 0; j < shape[1]; j++) {
           var clearCol = col + j * dx;
           var fillCol = col + x + j * dx;
-          hash ^= zob_hash.key[rowToClear][clearCol].value[type];
-          hash ^= zob_hash.key[rowToClear][clearCol].value[0];
-          hash ^= zob_hash.key[rowToFill][fillCol].value[0];
-          hash ^= zob_hash.key[rowToFill][fillCol].value[type];
+          var clearIdx = (rowToClear * HRD_GAME_COL + clearCol) * zob_numTypes;
+          var fillIdx = (rowToFill * HRD_GAME_COL + fillCol) * zob_numTypes;
+          hash ^= zob_hash[clearIdx + type];
+          hash ^= zob_hash[clearIdx];
+          hash ^= zob_hash[fillIdx];
+          hash ^= zob_hash[fillIdx + type];
         }
         return hash;
       }
@@ -142,102 +104,41 @@
       for (var i = 0; i < shape[0]; i++) {
         var clearRow = row + i;
         var fillRow = row + i;
-        hash ^= zob_hash.key[clearRow][colToClear].value[type];
-        hash ^= zob_hash.key[clearRow][colToClear].value[0];
-        hash ^= zob_hash.key[fillRow][colToFill].value[0];
-        hash ^= zob_hash.key[fillRow][colToFill].value[type];
+        var clearIdx = (clearRow * HRD_GAME_COL + colToClear) * zob_numTypes;
+        var fillIdx = (fillRow * HRD_GAME_COL + colToFill) * zob_numTypes;
+        hash ^= zob_hash[clearIdx + type];
+        hash ^= zob_hash[clearIdx];
+        hash ^= zob_hash[fillIdx];
+        hash ^= zob_hash[fillIdx + type];
       }
 
       return hash;
     }
 
     function initZobristHash(numTypes) {
-      var i, j;
-
-      zob_hash = { key: [] };
-
-      for (i = 0; i < HRD_GAME_ROW; i++) {
-        zob_hash.key[i] = [];
-
-        for (j = 0; j < HRD_GAME_COL; j++) {
-          zob_hash.key[i][j] = { value: [] };
-          makeCellState(numTypes, zob_hash.key[i][j]);
-        }
+      zob_numTypes = numTypes;
+      var size = HRD_GAME_ROW * HRD_GAME_COL * numTypes;
+      zob_hash = new Uint32Array(size);
+      for (var i = 0; i < size; i++) {
+        zob_hash[i] = (Math.random() * 0x100000000) >>> 0;
       }
-    }
-
-    function makeCellState(numTypes, cr) {
-      var i;
-      for (i = 0; i < numTypes; i++) {
-        cr.value[i] = random32();
-      }
-    }
-
-    function random32() {
-      var tmp = 0;
-
-      do {
-        tmp = Math.floor(Math.random() * Math.pow(2, 31));
-      } while (!tmp);
-
-      return parseInt(tmp);
     }
 
     function isPositionAvailable(state, shape, row, col) {
       for (var i = 1; i <= shape[0]; i++) {
         for (var j = 1; j <= shape[1]; j++) {
-          if (state.board[boardIndex(row + i, col + j)] !== BOARD_CELL_EMPTY) {
+          if (state.board[(row + i) * HRD_BOARD_WIDTH + col + j] !== BOARD_CELL_EMPTY) {
             return false;
           }
         }
       }
       return true;
-    }
-
-    function canBlockMove(state, blockIdx, dirIdx) {
-      var block = state.blocks[blockIdx];
-
-      if (block.directions && block.directions.indexOf(dirIdx) === -1) {
-        return false;
-      }
-
-      var shape = block.shape;
-      var dir = directions[dirIdx];
-
-      if (dir.y !== 0) {
-        var checkRow = dir.y > 0 ? block.row + shape[0] + 1 : block.row;
-        for (var j = 1; j <= shape[1]; j++) {
-          var val = state.board[boardIndex(checkRow, block.col + j)];
-          if (val !== BOARD_CELL_EMPTY && val !== blockIdx + 1) {
-            return false;
-          }
-        }
-        return true;
-      }
-
-      var checkCol = dir.x > 0 ? block.col + shape[1] + 1 : block.col;
-      for (var i = 1; i <= shape[0]; i++) {
-        var val = state.board[boardIndex(block.row + i, checkCol)];
-        if (val !== BOARD_CELL_EMPTY && val !== blockIdx + 1) {
-          return false;
-        }
-      }
-
-      return true;
-    }
-
-    function clearPosition(state, shape, row, col) {
-      for (var i = 1; i <= shape[0]; i++) {
-        for (var j = 1; j <= shape[1]; j++) {
-          state.board[boardIndex(row + i, col + j)] = BOARD_CELL_EMPTY;
-        }
-      }
     }
 
     function takePosition(state, blockIdx, shape, row, col) {
       for (var i = 1; i <= shape[0]; i++) {
         for (var j = 1; j <= shape[1]; j++) {
-          state.board[boardIndex(row + i, col + j)] = blockIdx + 1;
+          state.board[(row + i) * HRD_BOARD_WIDTH + col + j] = blockIdx + 1;
         }
       }
     }
@@ -253,27 +154,23 @@
     }
 
     function initGameStateBoard(state) {
-      var i, j;
-
       state.board = new Int8Array(HRD_BOARD_WIDTH * HRD_BOARD_HEIGHT);
 
-      for (i = 0; i < HRD_BOARD_WIDTH; i++) {
-        state.board[boardIndex(0, i)] = BOARD_CELL_BORDER;
-        state.board[boardIndex(HRD_BOARD_HEIGHT - 1, i)] = BOARD_CELL_BORDER;
+      for (var i = 0; i < HRD_BOARD_WIDTH; i++) {
+        state.board[i] = BOARD_CELL_BORDER;
+        state.board[(HRD_BOARD_HEIGHT - 1) * HRD_BOARD_WIDTH + i] = BOARD_CELL_BORDER;
       }
 
-      for (i = 1; i < HRD_BOARD_HEIGHT - 1; i++) {
-        state.board[boardIndex(i, 0)] = BOARD_CELL_BORDER;
-        state.board[boardIndex(i, HRD_BOARD_WIDTH - 1)] = BOARD_CELL_BORDER;
+      for (var j = 1; j < HRD_BOARD_HEIGHT - 1; j++) {
+        state.board[j * HRD_BOARD_WIDTH] = BOARD_CELL_BORDER;
+        state.board[j * HRD_BOARD_WIDTH + HRD_BOARD_WIDTH - 1] = BOARD_CELL_BORDER;
       }
     }
 
     function createGame(blocks) {
       var game = {
         states: [],
-        zhash: {},
         result: {
-          time: null,
           moves: [],
         },
       };
@@ -331,16 +228,6 @@
       return game;
     }
 
-    function markGameState(game, gameState) {
-      var l2rHash = gameState.hash;
-      game.zhash[l2rHash] = true;
-
-      if (NO_LR_MIRROR_ALLOW) {
-        var r2lHash = gameState.hashMirror;
-        game.zhash[r2lHash] = true;
-      }
-    }
-
     function outputMoveRecords(game, gameState) {
       var state = gameState;
       while (state) {
@@ -356,135 +243,158 @@
       }
     }
 
-    function isEscaped(game, gameState) {
-      var block = gameState.blocks[0];
-      return block.row === ESCAPE_ROW && block.col === ESCAPE_COL;
-    }
-
     function resolveGame(game, options) {
       var buckets = [];
       var bucketHeads = [];
       var minStep = 0;
       var queueSize = 0;
 
-      function pushToQueue(state) {
-        var step = state.step;
-        if (!buckets[step]) {
-          buckets[step] = [];
-          bucketHeads[step] = 0;
-        }
-        buckets[step].push(state);
-        queueSize++;
-        if (step < minStep) {
-          minStep = step;
+      var isSingle = options && options.singleMove;
+      var visited = new Map();
+      var initialState = game.states[0];
+      var numBlocks = initialState.blocks.length;
+
+      if (isSingle) {
+        visited.set(initialState.hash, 0);
+        if (NO_LR_MIRROR_ALLOW) {
+          visited.set(initialState.hashMirror, 0);
         }
       }
 
-      function popFromQueue() {
-        if (queueSize === 0) {
-          return null;
-        }
+      buckets[0] = [initialState];
+      bucketHeads[0] = 0;
+      queueSize = 1;
+
+      while (queueSize > 0) {
         while (!buckets[minStep] || bucketHeads[minStep] >= buckets[minStep].length) {
           minStep++;
         }
         queueSize--;
-        return buckets[minStep][bucketHeads[minStep]++];
-      }
+        var gameState = buckets[minStep][bucketHeads[minStep]++];
 
-      var isSingle = options && options.singleMove;
-      var visited = isSingle ? Object.create(null) : [];
-      var initialState = game.states[0];
-      pushToQueue(initialState);
-
-      function getVisitedStep(hash, blockIdx) {
-        if (isSingle) {
-          return visited[hash];
-        }
-
-        var bucket = visited[blockIdx];
-        return bucket ? bucket[hash] : undefined;
-      }
-
-      function setVisitedStep(hash, blockIdx, step) {
-        if (isSingle) {
-          visited[hash] = step;
-          return;
-        }
-
-        if (!visited[blockIdx]) {
-          visited[blockIdx] = Object.create(null);
-        }
-        visited[blockIdx][hash] = step;
-      }
-
-      if (isSingle) {
-        setVisitedStep(initialState.hash, 0, 0);
-        if (NO_LR_MIRROR_ALLOW) {
-          setVisitedStep(initialState.hashMirror, 0, 0);
-        }
-      }
-
-      while (queueSize > 0) {
-        var gameState = popFromQueue();
-
-        if (isEscaped(game, gameState)) {
+        var block0 = gameState.blocks[0];
+        if (block0.row === ESCAPE_ROW && block0.col === ESCAPE_COL) {
           outputMoveRecords(game, gameState);
           return true;
         }
 
-        for (var i = 0; i < gameState.blocks.length; i++) {
-          for (var dirIdx = 0; dirIdx < MAX_MOVE_DIRECTION; dirIdx++) {
-            if (canBlockMove(gameState, i, dirIdx)) {
-              var hash = getZobristHashUpdate(gameState, i, dirIdx);
-              var hashMirror = 0;
-              if (NO_LR_MIRROR_ALLOW) {
-                hashMirror = getZobristHashUpdate(gameState, i, dirIdx, true);
-              }
+        var parentBlockIdx = gameState.parent !== null ? gameState.move.blockIdx : -1;
+        var parentDirIdx = gameState.move.dirIdx;
+        var stateStep = gameState.step;
+        var stateBoard = gameState.board;
+        var stateBlocks = gameState.blocks;
 
-              var isContinue = false;
-              if (gameState.parent !== null && !isSingle) {
-                isContinue = gameState.move.blockIdx === i && !isReverseDirection(dirIdx, gameState.move.dirIdx);
-              }
+        for (var i = 0; i < numBlocks; i++) {
+          var block = stateBlocks[i];
+          var blockDirections = block.directions;
+          var shape = block.shape;
+          var shapeRows = shape[0];
+          var shapeCols = shape[1];
+          var blockRow = block.row;
+          var blockCol = block.col;
 
-              var newStep = isContinue ? gameState.step : gameState.step + 1;
-              var visitedStep = getVisitedStep(hash, i);
-              if (visitedStep !== undefined && visitedStep <= newStep) {
-                continue;
-              }
-              if (NO_LR_MIRROR_ALLOW) {
-                var visitedMirrorStep = getVisitedStep(hashMirror, i);
-                if (visitedMirrorStep !== undefined && visitedMirrorStep <= newStep) {
-                  continue;
+          for (var dirIdx = 0; dirIdx < 4; dirIdx++) {
+            if (blockDirections && blockDirections.indexOf(dirIdx) === -1) {
+              continue;
+            }
+
+            var dirX = DIR_X[dirIdx];
+            var dirY = DIR_Y[dirIdx];
+            var canMove = true;
+
+            if (dirY !== 0) {
+              var checkRow = dirY > 0 ? blockRow + shapeRows + 1 : blockRow;
+              for (var j = 1; j <= shapeCols; j++) {
+                var val = stateBoard[checkRow * HRD_BOARD_WIDTH + blockCol + j];
+                if (val !== BOARD_CELL_EMPTY && val !== i + 1) {
+                  canMove = false;
+                  break;
                 }
               }
-
-              var newState = copyGameState(gameState);
-              var block = newState.blocks[i];
-              var dir = directions[dirIdx];
-
-              clearPosition(newState, block.shape, block.row, block.col);
-              takePosition(newState, i, block.shape, block.row + dir.y, block.col + dir.x);
-
-              block.row = block.row + dir.y;
-              block.col = block.col + dir.x;
-
-              newState.blocks[i] = block;
-              newState.step = newStep;
-              newState.parent = gameState;
-              newState.move.blockIdx = i;
-              newState.move.dirIdx = dirIdx;
-              newState.hash = hash;
-              if (NO_LR_MIRROR_ALLOW) {
-                newState.hashMirror = hashMirror;
+            } else {
+              var checkCol = dirX > 0 ? blockCol + shapeCols + 1 : blockCol;
+              for (var k = 1; k <= shapeRows; k++) {
+                var val = stateBoard[(blockRow + k) * HRD_BOARD_WIDTH + checkCol];
+                if (val !== BOARD_CELL_EMPTY && val !== i + 1) {
+                  canMove = false;
+                  break;
+                }
               }
-
-              setVisitedStep(hash, i, newStep);
-              if (NO_LR_MIRROR_ALLOW) {
-                setVisitedStep(hashMirror, i, newStep);
-              }
-
-              pushToQueue(newState);
             }
+
+            if (!canMove) continue;
+
+            var hash = getZobristHashUpdate(gameState, i, dirIdx);
+            var hashMirror = NO_LR_MIRROR_ALLOW ? getZobristHashUpdate(gameState, i, dirIdx, true) : 0;
+
+            var isContinue = !isSingle && parentBlockIdx === i && (dirIdx + 2) % 4 !== parentDirIdx;
+            var newStep = isContinue ? stateStep : stateStep + 1;
+
+            var compositeKey = isSingle ? hash : hash * 16 + i;
+            var visitedStep = visited.get(compositeKey);
+            if (visitedStep !== undefined && visitedStep <= newStep) {
+              continue;
+            }
+
+            if (NO_LR_MIRROR_ALLOW) {
+              var mirrorKey = isSingle ? hashMirror : hashMirror * 16 + i;
+              var visitedMirrorStep = visited.get(mirrorKey);
+              if (visitedMirrorStep !== undefined && visitedMirrorStep <= newStep) {
+                continue;
+              }
+            }
+
+            var newBoard = stateBoard.slice(0);
+            var newRow = blockRow + dirY;
+            var newCol = blockCol + dirX;
+
+            for (var ri = 1; ri <= shapeRows; ri++) {
+              for (var ci = 1; ci <= shapeCols; ci++) {
+                newBoard[(blockRow + ri) * HRD_BOARD_WIDTH + blockCol + ci] = BOARD_CELL_EMPTY;
+              }
+            }
+            for (var ri = 1; ri <= shapeRows; ri++) {
+              for (var ci = 1; ci <= shapeCols; ci++) {
+                newBoard[(newRow + ri) * HRD_BOARD_WIDTH + newCol + ci] = i + 1;
+              }
+            }
+
+            var newBlocks = new Array(numBlocks);
+            for (var bi = 0; bi < numBlocks; bi++) {
+              if (bi === i) {
+                newBlocks[bi] = {
+                  shape: shape,
+                  directions: blockDirections,
+                  type: block.type,
+                  row: newRow,
+                  col: newCol,
+                };
+              } else {
+                newBlocks[bi] = stateBlocks[bi];
+              }
+            }
+
+            var newState = {
+              board: newBoard,
+              blocks: newBlocks,
+              move: { blockIdx: i, dirIdx: dirIdx },
+              step: newStep,
+              hash: hash,
+              hashMirror: hashMirror,
+              parent: gameState,
+            };
+
+            visited.set(compositeKey, newStep);
+            if (NO_LR_MIRROR_ALLOW) {
+              visited.set(mirrorKey, newStep);
+            }
+
+            if (!buckets[newStep]) {
+              buckets[newStep] = [];
+              bucketHeads[newStep] = 0;
+            }
+            buckets[newStep].push(newState);
+            queueSize++;
           }
         }
       }
