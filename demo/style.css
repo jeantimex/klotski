@@ -3,6 +3,7 @@
    ========================================================================== */
 
 :root {
+  color-scheme: dark;
   --bg-gradient: linear-gradient(135deg, #0a0813 0%, #120e24 50%, #080611 100%);
   --accent-color: #8e54e9;
   --accent-color-glow: rgba(142, 84, 233, 0.4);
@@ -15,8 +16,93 @@
   --glass-bg: rgba(255, 255, 255, 0.02);
   --glass-border: rgba(255, 255, 255, 0.06);
   --glass-highlight: rgba(255, 255, 255, 0.03);
+  --board-bg: #050409;
+  --grid-line: rgba(255, 255, 255, 0.02);
+  --cell-border: rgba(255, 255, 255, 0.045);
+  --cell-glow: rgba(255, 255, 255, 0.025);
+  --cell-bg: rgba(255, 255, 255, 0.01);
+  --panel-bg: rgba(255, 255, 255, 0.01);
+  --panel-border: rgba(255, 255, 255, 0.03);
+  --control-bg: rgba(255, 255, 255, 0.03);
+  --control-bg-strong: rgba(255, 255, 255, 0.06);
+  --control-hover-bg: rgba(255, 255, 255, 0.1);
+  --select-option-bg: #120e24;
+  --overlay-bg: rgba(10, 8, 19, 0.85);
+  --footer-text: rgba(255, 255, 255, 0.15);
+  --scrollbar-track: rgba(255, 255, 255, 0.03);
+  --scrollbar-thumb: rgba(255, 255, 255, 0.14);
+  --switch-bg: rgba(255, 255, 255, 0.04);
+  --switch-border: rgba(255, 255, 255, 0.08);
 
   --cell-size: 80px;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --bg-gradient: linear-gradient(135deg, #eef4ff 0%, #f8fbff 52%, #edf1f8 100%);
+  --accent-color: #4f6edb;
+  --accent-color-glow: rgba(79, 110, 219, 0.28);
+  --accent-pink: #d84a32;
+  --accent-pink-glow: rgba(216, 74, 50, 0.28);
+  --text-primary: #1d2433;
+  --text-secondary: #657086;
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(35, 48, 78, 0.13);
+  --glass-highlight: rgba(255, 255, 255, 0.6);
+  --board-bg: #f6f8fc;
+  --grid-line: rgba(29, 36, 51, 0.055);
+  --cell-border: rgba(29, 36, 51, 0.08);
+  --cell-glow: rgba(255, 255, 255, 0.75);
+  --cell-bg: rgba(29, 36, 51, 0.018);
+  --panel-bg: rgba(255, 255, 255, 0.58);
+  --panel-border: rgba(35, 48, 78, 0.1);
+  --control-bg: rgba(255, 255, 255, 0.74);
+  --control-bg-strong: rgba(255, 255, 255, 0.92);
+  --control-hover-bg: rgba(79, 110, 219, 0.1);
+  --select-option-bg: #ffffff;
+  --overlay-bg: rgba(246, 248, 252, 0.86);
+  --footer-text: rgba(29, 36, 51, 0.36);
+  --scrollbar-track: rgba(29, 36, 51, 0.06);
+  --scrollbar-thumb: rgba(29, 36, 51, 0.22);
+  --switch-bg: rgba(29, 36, 51, 0.08);
+  --switch-border: rgba(29, 36, 51, 0.12);
+}
+
+@media (prefers-color-scheme: light) {
+  :root[data-theme='system'] {
+    color-scheme: light;
+    --bg-gradient: linear-gradient(135deg, #eef4ff 0%, #f8fbff 52%, #edf1f8 100%);
+    --accent-color: #4f6edb;
+    --accent-color-glow: rgba(79, 110, 219, 0.28);
+    --accent-pink: #d84a32;
+    --accent-pink-glow: rgba(216, 74, 50, 0.28);
+    --text-primary: #1d2433;
+    --text-secondary: #657086;
+    --glass-bg: rgba(255, 255, 255, 0.72);
+    --glass-border: rgba(35, 48, 78, 0.13);
+    --glass-highlight: rgba(255, 255, 255, 0.6);
+    --board-bg: #f6f8fc;
+    --grid-line: rgba(29, 36, 51, 0.055);
+    --cell-border: rgba(29, 36, 51, 0.08);
+    --cell-glow: rgba(255, 255, 255, 0.75);
+    --cell-bg: rgba(29, 36, 51, 0.018);
+    --panel-bg: rgba(255, 255, 255, 0.58);
+    --panel-border: rgba(35, 48, 78, 0.1);
+    --control-bg: rgba(255, 255, 255, 0.74);
+    --control-bg-strong: rgba(255, 255, 255, 0.92);
+    --control-hover-bg: rgba(79, 110, 219, 0.1);
+    --select-option-bg: #ffffff;
+    --overlay-bg: rgba(246, 248, 252, 0.86);
+    --footer-text: rgba(29, 36, 51, 0.36);
+    --scrollbar-track: rgba(29, 36, 51, 0.06);
+    --scrollbar-thumb: rgba(29, 36, 51, 0.22);
+    --switch-bg: rgba(29, 36, 51, 0.08);
+    --switch-border: rgba(29, 36, 51, 0.12);
+  }
 }
 
 * {
@@ -32,17 +118,18 @@ body {
   min-height: 100vh;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   overflow-x: hidden;
 }
 
 .app-container {
   width: 100%;
-  max-width: 1000px;
-  padding: 40px 20px;
+  max-width: 1120px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: clamp(14px, 2.5vh, 28px) 20px;
   display: flex;
   flex-direction: column;
-  gap: 30px;
 }
 
 /* Header */
@@ -84,23 +171,85 @@ body {
 /* Main Content Layout */
 .main-content {
   display: grid;
-  grid-template-columns: 1.1fr 1fr;
+  grid-template-columns: minmax(360px, 1fr) minmax(320px, 400px);
   gap: 40px;
-  align-items: start;
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
 }
 
 @media (max-width: 768px) {
   .main-content {
     grid-template-columns: 1fr;
     gap: 30px;
+    min-height: auto;
+  }
+
+  .controls-section {
+    padding-right: 0;
+    justify-content: flex-start;
+  }
+}
+
+@media (min-width: 769px) and (max-height: 760px) {
+  :root {
+    --cell-size: 72px;
+  }
+
+  .app-container {
+    padding-block: 12px;
+  }
+
+  .main-content {
+    gap: 28px;
+  }
+
+  .board-section {
+    gap: 18px;
+  }
+
+  .glow-text {
+    font-size: 2.8rem;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+  }
+
+  .header-divider {
+    margin-top: 10px;
+  }
+
+  .board-wrapper {
+    padding: 12px;
+  }
+
+  .glass-card {
+    padding: 20px;
+  }
+
+  .glass-card {
+    gap: 14px;
+  }
+
+  .status-panel {
+    padding: 14px;
+  }
+
+  .btn {
+    min-height: 42px;
+    padding: 10px 14px;
   }
 }
 
 /* Board Section */
 .board-section {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
+  gap: 28px;
+  min-height: 0;
 }
 
 .board-wrapper {
@@ -119,25 +268,25 @@ body {
   position: relative;
   width: calc(4 * var(--cell-size));
   height: calc(5 * var(--cell-size));
-  background-color: #050409;
+  background-color: var(--board-bg);
   border-radius: 12px;
   cursor: default;
   box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.9);
   /* Elegant grid overlay background */
   background-size: var(--cell-size) var(--cell-size);
   background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
 }
 
 .board-cell {
   position: absolute;
   width: var(--cell-size);
   height: var(--cell-size);
-  border: 1px solid rgba(255, 255, 255, 0.045);
+  border: 1px solid var(--cell-border);
   background:
-    radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.025), transparent 62%),
-    rgba(255, 255, 255, 0.01);
+    radial-gradient(circle at 50% 45%, var(--cell-glow), transparent 62%),
+    var(--cell-bg);
   pointer-events: none;
   z-index: 0;
 }
@@ -224,7 +373,7 @@ body {
   left: 16px;
   right: 16px;
   bottom: 16px;
-  background: rgba(10, 8, 19, 0.85);
+  background: var(--overlay-bg);
   backdrop-filter: blur(8px);
   border-radius: 12px;
   display: flex;
@@ -260,11 +409,12 @@ body {
 .controls-section {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 20px;
 }
 
 .glass-card {
-  background: var(--glass-bg);
+  background: transparent;
   border: 1px solid var(--glass-border);
   border-radius: 20px;
   padding: 30px;
@@ -290,6 +440,39 @@ body {
 
 #create-game-btn {
   grid-column: 1 / -1;
+}
+
+.theme-control {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  background: var(--panel-bg);
+}
+
+.theme-option {
+  border: none;
+  border-radius: 7px;
+  padding: 9px 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.theme-option:hover {
+  color: var(--text-primary);
+  background: var(--control-hover-bg);
+}
+
+.theme-option.active {
+  color: #ffffff;
+  background: var(--accent-color);
+  box-shadow: 0 3px 10px var(--accent-color-glow);
 }
 
 .create-palette {
@@ -390,7 +573,7 @@ body {
   width: 100%;
   padding: 14px 20px;
   font-size: 1rem;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--control-bg);
   border: 1px solid var(--glass-border);
   border-radius: 10px;
   color: var(--text-primary);
@@ -402,11 +585,11 @@ body {
 #game-selector:focus {
   outline: none;
   border-color: var(--accent-color);
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--control-bg-strong);
 }
 
 #game-selector option {
-  background-color: #120e24;
+  background-color: var(--select-option-bg);
   color: var(--text-primary);
 }
 
@@ -415,10 +598,10 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  background: rgba(255, 255, 255, 0.01);
+  background: var(--panel-bg);
   padding: 18px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--panel-border);
 }
 
 .status-row {
@@ -504,13 +687,13 @@ body {
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--control-bg);
   border: 1px solid var(--glass-border);
   color: var(--text-primary);
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--control-hover-bg);
 }
 
 .btn-danger {
@@ -524,42 +707,105 @@ body {
   background: rgba(255, 75, 43, 0.1);
 }
 
-/* Instructions Card */
-.instructions-card {
-  background: var(--glass-bg);
+.help-dialog {
+  width: min(520px, calc(100vw - 32px));
   border: 1px solid var(--glass-border);
-  border-radius: 20px;
-  padding: 24px;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  border-radius: 16px;
+  margin: auto;
+  padding: 0;
+  background: var(--glass-bg);
+  color: var(--text-primary);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(14px);
 }
 
-.instructions-card h3 {
-  font-size: 1rem;
+.help-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.help-dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+}
+
+.help-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.help-dialog h3 {
+  font-size: 1.1rem;
   font-weight: 600;
 }
 
-.instructions-card ul {
+.help-dialog ul {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  font-size: 0.88rem;
+  gap: 10px;
+  font-size: 0.95rem;
+  line-height: 1.45;
   color: var(--text-secondary);
 }
 
-.instructions-card li strong {
+.help-dialog li strong {
   color: var(--text-primary);
+}
+
+.help-attribution {
+  padding-top: 14px;
+  border-top: 1px solid var(--glass-border);
+  color: var(--footer-text);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.dialog-close-btn {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  background: var(--control-bg);
+  color: var(--text-primary);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.dialog-close-btn:hover {
+  background: var(--control-hover-bg);
 }
 
 /* Footer */
 .app-footer {
   text-align: center;
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.15);
+  color: var(--footer-text);
   margin-top: 10px;
+}
+
+.github-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.github-link:hover {
+  color: var(--text-secondary);
+}
+
+.github-link svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
 }
 
 /* Utility Helpers */
@@ -638,8 +884,8 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(255, 255, 255, 0.04);
-  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  background-color: var(--switch-bg);
+  border: 1.5px solid var(--switch-border);
   transition: .3s;
   border-radius: 24px;
 }

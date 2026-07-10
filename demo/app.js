@@ -635,13 +635,55 @@ const directions = [
 const CELL_SIZE = 80;
 const BOARD_ROWS = 5;
 const BOARD_COLS = 4;
+const THEME_STORAGE_KEY = 'klotski-color-scheme';
+const COLOR_SCHEMES = ['system', 'light', 'dark'];
 
 // Init
 window.addEventListener('DOMContentLoaded', () => {
+  initThemeControls();
   initSelector();
   loadGame(0);
   setupEvents();
 });
+
+function initThemeControls() {
+  const savedTheme = getStoredColorScheme();
+  setColorScheme(COLOR_SCHEMES.includes(savedTheme) ? savedTheme : 'system');
+
+  document.querySelectorAll('.theme-option').forEach(button => {
+    button.addEventListener('click', () => {
+      setColorScheme(button.dataset.themeChoice);
+    });
+  });
+}
+
+function setColorScheme(theme) {
+  const nextTheme = COLOR_SCHEMES.includes(theme) ? theme : 'system';
+  document.documentElement.dataset.theme = nextTheme;
+  storeColorScheme(nextTheme);
+
+  document.querySelectorAll('.theme-option').forEach(button => {
+    const isActive = button.dataset.themeChoice === nextTheme;
+    button.classList.toggle('active', isActive);
+    button.setAttribute('aria-pressed', String(isActive));
+  });
+}
+
+function getStoredColorScheme() {
+  try {
+    return localStorage.getItem(THEME_STORAGE_KEY);
+  } catch (error) {
+    return null;
+  }
+}
+
+function storeColorScheme(theme) {
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+  } catch (error) {
+    // Theme switching still works for the current session without storage.
+  }
+}
 
 function initSelector() {
   const selector = document.getElementById('game-selector');
@@ -843,6 +885,21 @@ function setupEvents() {
     }
   });
 
+  document.getElementById('help-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    openHelpDialog();
+  });
+
+  document.getElementById('help-close-btn').addEventListener('click', () => {
+    closeHelpDialog();
+  });
+
+  document.getElementById('help-dialog').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) {
+      closeHelpDialog();
+    }
+  });
+
   // Overlay click continues reverse playback only before the board is locked as complete.
   document.getElementById('board-overlay').addEventListener('click', () => {
     if (isCompleted) {
@@ -872,6 +929,20 @@ function setupEvents() {
     }
   });
 
+}
+
+function openHelpDialog() {
+  const dialog = document.getElementById('help-dialog');
+  if (!dialog.open) {
+    dialog.showModal();
+  }
+}
+
+function closeHelpDialog() {
+  const dialog = document.getElementById('help-dialog');
+  if (dialog.open) {
+    dialog.close();
+  }
 }
 
 function handleBoardKeydown(e) {
